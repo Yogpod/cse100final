@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSE100 Study Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="backdrop"></div>
+  <nav class="topnav">
+    <div class="brand">CSE100 Study</div>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="parts/part1.html">Foundations</a>
+      <a href="parts/part2.html">Sorting</a>
+      <a href="parts/part3.html">Data Structures</a>
+      <a href="parts/part4.html">Graphs</a>
+      <a href="parts/part5.html">DP & Greedy</a>
+    </div>
+  </nav>
+  <header class="hero">
+    <div class="hero__text">
+      <p class="eyebrow">CSE100 • Algorithms & Analysis</p>
+      <h1>Practice-first study.</h1>
+      <p class="lede">Clean topic pages with unlimited auto-generated drills (click New Exercise forever).</p>
+      <div class="hero__actions">
+        <a class="btn primary" href="parts/part1.html">Start</a>
+      </div>
+      <div class="tags">
+        <span class="tag">Asymptotics</span>
+        <span class="tag">Recurrences</span>
+        <span class="tag">Sorting</span>
+        <span class="tag">Graphs</span>
+        <span class="tag">DP</span>
+      </div>
+    </div>
+    <div class="hero__panel">
+      <div class="panel">
+        <p class="panel__title">How it works</p>
+        <p class="panel__question">Pick a module → open a topic → generate drills → check answers → repeat.</p>
+        <p class="panel__answer">No exercise bank to “run out”.</p>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="section">
+      <div class="section__header">
+        <p class="eyebrow">Pick a module</p>
+        <h2>Go straight to drills</h2>
+      </div>
+      <div class="grid grid-compact" id="part-list"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Pick a module to start practicing exercises; shuffle quiz cards anytime for a speed drill.</p>
+  </footer>
+
+  <script src="assets/js/syllabus.js"></script>
+  <script src="assets/js/generators.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foundations & Analysis • CSE100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-part="part1">
+  <div class="backdrop"></div>
+  <nav class="topnav">
+    <div class="brand">CSE100 Study</div>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="part1.html">Foundations</a>
+      <a href="part2.html">Sorting</a>
+      <a href="part3.html">Data Structures</a>
+      <a href="part4.html">Graphs</a>
+      <a href="part5.html">DP & Greedy</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero__text">
+      <p class="eyebrow">Module</p>
+      <h1 id="part-title">Foundations & Analysis</h1>
+      <p class="lede">Open a topic page to generate unlimited drills.</p>
+    </div>
+    <div class="hero__panel">
+      <div class="panel">
+        <p class="panel__title">Tip</p>
+        <p class="panel__question">Try 10 drills per topic. If you miss one, generate a new one immediately.</p>
+        <p class="panel__answer"></p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="section__header">
+        <p class="eyebrow">Topics</p>
+        <h2>Choose a topic</h2>
+      </div>
+      <div class="grid" id="topic-list"></div>
+    </section>
+  </main>
+
+  <script src="../assets/js/syllabus.js"></script>
+  <script src="../assets/js/generators.js"></script>
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

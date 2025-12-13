@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickSort • CSE100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body data-topic="quicksort">
+  <div class="backdrop"></div>
+  <nav class="topnav">
+    <div class="brand">CSE100 Study</div>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="../parts/part1.html">Foundations</a>
+      <a href="../parts/part2.html">Sorting</a>
+      <a href="../parts/part3.html">Data Structures</a>
+      <a href="../parts/part4.html">Graphs</a>
+      <a href="../parts/part5.html">DP & Greedy</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero__text">
+      <p class="eyebrow">Topic</p>
+      <h1 id="topic-title">QuickSort</h1>
+      <p class="lede" id="topic-part"></p>
+    </div>
+    <div class="hero__panel">
+      <div class="panel">
+        <p class="panel__title">Key Points</p>
+        <div id="keypoints"></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="section__header">
+        <p class="eyebrow">Practice</p>
+        <h2>Unlimited drills</h2>
+      </div>
+
+      <div class="runner">
+        <div class="prompt" id="prompt"></div>
+        <label class="eyebrow" for="answer">Your answer</label>
+        <input class="exercise-input" id="answer" type="text" autocomplete="off" />
+        <div class="actions">
+          <button class="btn primary" id="btn-new" type="button">New exercise</button>
+          <button class="btn secondary" id="btn-check" type="button">Check</button>
+          <button class="btn ghost" id="btn-reveal" type="button">Reveal solution</button>
+        </div>
+        <div class="status" id="status"></div>
+        <div class="solution hidden" id="solution"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/syllabus.js"></script>
+  <script src="../assets/js/generators.js"></script>
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>
