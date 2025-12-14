@@ -677,7 +677,12 @@
     qs("#btn-check").addEventListener("click", () => check());
     qs("#btn-reveal").addEventListener("click", () => reveal());
     legacyAnswer?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") check();
+      // For input elements, Enter submits; for textarea, Ctrl+Enter submits
+      const isTextarea = legacyAnswer.tagName.toLowerCase() === "textarea";
+      if (e.key === "Enter" && (!isTextarea || e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        check();
+      }
     });
 
     newExercise();

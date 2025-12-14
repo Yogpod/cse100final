@@ -854,11 +854,88 @@
   }
 
   function genRecurrences() {
-    const type = sample(["master", "tree_count", "tree_size"]);
+    const type = sample(["master", "tree_count", "tree_size", "identify_case", "substitution", "common_recurrences"]);
     const b = sample([2, 3, 4]);
     const k = sample([1, 2, 3]);
     const a = Math.pow(b, k);
     const d = sample([0, 1, 2, 3]);
+
+    if (type === "identify_case") {
+      // Which Master Theorem case applies?
+      const bd = Math.pow(b, d);
+      let caseNum, caseDesc;
+      if (a > bd) {
+        caseNum = 1;
+        caseDesc = "a > b^d, so work at leaves dominates";
+      } else if (a === bd) {
+        caseNum = 2;
+        caseDesc = "a = b^d, balanced (work at all levels is equal)";
+      } else {
+        caseNum = 3;
+        caseDesc = "a < b^d, so work at root dominates";
+      }
+      
+      const prompt = `Master Theorem: for T(n) = ${a}T(n/${b}) + Θ(n^${d}), which case applies? Answer 1, 2, or 3.`;
+      return {
+        prompt,
+        answer: [String(caseNum)],
+        check: (user) => normalize(user) === String(caseNum),
+        solution: `1) Compute $b^d = ${b}^{${d}} = ${bd}$.
+2) Compare $a = ${a}$ with $b^d = ${bd}$.
+3) ${caseDesc}.
+4) **Case ${caseNum}** applies.`,
+      };
+    }
+
+    if (type === "substitution") {
+      const prompt = `When the Master Theorem doesn't apply, what method can you use to solve a recurrence?`;
+      return {
+        prompt,
+        answer: ["substitution", "recursion tree", "guess and verify"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("substitution") || u.includes("tree") || u.includes("guess") || u.includes("induction");
+        },
+        solution: `**Methods for Solving Recurrences:**
+
+1) **Substitution Method:** Guess the form of the solution, then use induction to prove it.
+
+2) **Recursion Tree:** Draw the tree of recursive calls, sum work at each level.
+
+3) **Master Theorem:** When applicable (for $T(n) = aT(n/b) + f(n)$).
+
+**When Master Theorem fails:** Use substitution or recursion tree for:
+- Non-polynomial $f(n)$ (e.g., $n \\log n$)
+- Non-constant $a$ or $b$
+- Boundary cases`,
+      };
+    }
+
+    if (type === "common_recurrences") {
+      const recurrences = [
+        { rec: "T(n) = T(n/2) + O(1)", ans: "O(log n)", algo: "Binary Search" },
+        { rec: "T(n) = 2T(n/2) + O(n)", ans: "O(n log n)", algo: "Merge Sort" },
+        { rec: "T(n) = 2T(n/2) + O(1)", ans: "O(n)", algo: "Tree Traversal" },
+        { rec: "T(n) = T(n-1) + O(n)", ans: "O(n^2)", algo: "Selection Sort" },
+        { rec: "T(n) = T(n-1) + O(1)", ans: "O(n)", algo: "Linear Scan" },
+      ];
+      const r = sample(recurrences);
+      const prompt = `What is the solution to ${r.rec}?`;
+      return {
+        prompt,
+        answer: [r.ans],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          const e = normalize(r.ans).replace(/\s+/g, "");
+          return u.includes(e) || u.includes(e.replace("o(", "").replace(")", ""));
+        },
+        solution: `**${r.rec} → ${r.ans}**
+
+This is the recurrence for **${r.algo}**.
+
+Apply Master Theorem or unroll the recursion to verify.`,
+      };
+    }
 
     if (type === "tree_count") {
       const i = randInt(0, 5);
@@ -889,6 +966,7 @@
       };
     }
 
+    // Default: Master Theorem solution
     const prompt = `Use the Master Theorem on: T(n) = ${a} T(n/${b}) + Θ(n^${d}). Give the asymptotic bound as either "n^k", "n^d log n", or "n^d".`;
 
     const bd = Math.pow(b, d);
@@ -896,13 +974,21 @@
     let sol;
     if (a > bd) {
       ans = `n^${k}`;
-      sol = `1) Identify $a=${a}$, $b=${b}$, $f(n)=\u0398(n^${d})$.\n2) Compute $n^{\log_b a}$: $\log_${b}(${a})=${k}$ so $n^{\log_b a}=n^${k}$.\n3) Compare exponents: $a=${a} > b^d=${bd}$ (equivalently $n^{\log_b a}$ dominates).\n4) Master case 1 \u2192 $T(n)=\u0398(n^{\log_b a})=\u0398(n^${k})$.`;
+      sol = `1) Identify $a=${a}$, $b=${b}$, $f(n)=Θ(n^${d})$.
+2) Compute $n^{\\log_b a}$: $\\log_${b}(${a})=${k}$ so $n^{\\log_b a}=n^${k}$.
+3) Compare exponents: $a=${a} > b^d=${bd}$ (equivalently $n^{\\log_b a}$ dominates).
+4) Master case 1 → $T(n)=Θ(n^{\\log_b a})=Θ(n^${k})$.`;
     } else if (a === bd) {
       ans = d === 0 ? "log n" : `n^${d} log n`;
-      sol = `1) Identify $a=${a}$, $b=${b}$, $f(n)=\u0398(n^${d})$.\n2) Compute $\log_${b}(${a})=${k}$, so $n^{\log_b a}=n^${k}$.\n3) Here $a=b^d$ (balanced case).\n4) Master case 2 \u2192 $T(n)=\u0398(n^d\log n)${d === 0 ? ", i.e., $\u0398(\log n)$." : "."}`;
+      sol = `1) Identify $a=${a}$, $b=${b}$, $f(n)=Θ(n^${d})$.
+2) Compute $\\log_${b}(${a})=${k}$, so $n^{\\log_b a}=n^${k}$.
+3) Here $a=b^d$ (balanced case).
+4) Master case 2 → $T(n)=Θ(n^d\\log n)${d === 0 ? ", i.e., $Θ(\\log n)$." : "."}`;
     } else {
       ans = d === 0 ? "1" : `n^${d}`;
-      sol = `1) Identify $a=${a}$, $b=${b}$, $f(n)=\u0398(n^${d})$.\n2) Compare: $a=${a} < b^d=${bd}$ so $f(n)$ dominates.\n3) Master case 3 \u2192 $T(n)=\u0398(n^${d})${d === 0 ? ", i.e., $\u0398(1)$." : "."}`;
+      sol = `1) Identify $a=${a}$, $b=${b}$, $f(n)=Θ(n^${d})$.
+2) Compare: $a=${a} < b^d=${bd}$ so $f(n)$ dominates.
+3) Master case 3 → $T(n)=Θ(n^${d})${d === 0 ? ", i.e., $Θ(1)$." : "."}`;
     }
 
     return {
@@ -910,8 +996,8 @@
       answer: [ans, ans.replace(/\s+/g, "")],
       check: (user) => {
         const u0 = normalize(user)
-          .replace(/^theta\(|^\u0398\(/, "")
-          .replace(/^o\(|^\u03b8\(/, "")
+          .replace(/^theta\(|^Θ\(/, "")
+          .replace(/^o\(|^θ\(/, "")
           .replace(/\)$/, "")
           .replace(/\s+/g, " ");
         const u = u0.replace(/\s+/g, "");
@@ -923,7 +1009,7 @@
   }
 
   function genInduction() {
-    const type = sample(["steps", "hypothesis"]);
+    const type = sample(["steps", "hypothesis", "basecase", "formula"]);
 
     if (type === "hypothesis") {
       const prompt = `Induction: what do you assume in the inductive hypothesis? Answer like "Assume P(k) holds".`;
@@ -937,6 +1023,37 @@
         solution: `1) Choose an arbitrary $k\ge n_0$.
 2) The inductive hypothesis assumes the statement is true for $n=k$.
 3) In symbols: assume $P(k)$ holds.`,
+      };
+    }
+
+    if (type === "basecase") {
+      const n0 = sample([0, 1, 2]);
+      const prompt = `Induction: if we want to prove P(n) for all n ≥ ${n0}, what is the first step? Answer briefly.`;
+      return {
+        prompt,
+        answer: ["base case", "prove P(" + n0 + ")", "verify P(" + n0 + ")"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("base") || u.includes("p(" + n0 + ")") || u.includes("n=" + n0) || u.includes("n = " + n0);
+        },
+        solution: `1) The first step is the **base case**.
+2) We verify that $P(${n0})$ holds.
+3) This establishes the starting point for the induction.`,
+      };
+    }
+
+    if (type === "formula") {
+      const a = randInt(1, 3);
+      const n = randInt(3, 6);
+      // Sum of i from 1 to n
+      const sum = (n * (n + 1)) / 2;
+      const prompt = `Induction practice: Calculate $\\sum_{i=1}^{${n}} i$ using the closed-form formula $n(n+1)/2$.`;
+      return {
+        prompt,
+        answer: [String(sum)],
+        check: (user) => normalize(user) === String(sum),
+        solution: `1) The formula is $\\frac{n(n+1)}{2}$.
+2) Substituting $n = ${n}$: $\\frac{${n} \\cdot ${n + 1}}{2} = \\frac{${n * (n + 1)}}{2} = ${sum}$.`,
       };
     }
 
@@ -1007,6 +1124,85 @@
   }
 
   function genInsertion() {
+    const type = sample(["step", "comparisons", "bestcase", "worstcase", "stable", "invariant"]);
+    
+    if (type === "comparisons") {
+      // Worst-case comparisons for insertion sort
+      const n = randInt(4, 8);
+      const worstComparisons = (n * (n - 1)) / 2;
+      const prompt = `Insertion sort worst-case: how many comparisons are needed to sort ${n} elements in the worst case (reverse-sorted input)?`;
+      return {
+        prompt,
+        answer: [String(worstComparisons)],
+        check: (user) => normalize(user) === String(worstComparisons),
+        solution: `1) In the worst case (reverse sorted), element at position $i$ is compared with all $i$ previous elements.
+2) Total comparisons = $1 + 2 + 3 + ... + (n-1) = \\frac{n(n-1)}{2}$.
+3) For $n = ${n}$: $\\frac{${n} \\cdot ${n - 1}}{2} = ${worstComparisons}$.`,
+      };
+    }
+
+    if (type === "bestcase") {
+      const prompt = `Insertion sort best-case: what is the running time when the input is already sorted? Answer in Big-O.`;
+      return {
+        prompt,
+        answer: ["O(n)", "o(n)", "Θ(n)", "θ(n)", "n"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("o(n)") || u.includes("θ(n)") || u === "n" || u === "linear";
+        },
+        solution: `1) When already sorted, each element is compared only with its predecessor.
+2) The inner while-loop never executes (no shifts needed).
+3) This gives exactly $n - 1$ comparisons, hence $O(n)$ time.`,
+      };
+    }
+
+    if (type === "worstcase") {
+      const prompt = `Insertion sort worst-case: what is the running time? Answer in Big-O.`;
+      return {
+        prompt,
+        answer: ["O(n^2)", "o(n^2)", "Θ(n^2)", "n^2", "n squared"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("n^2") || u.includes("n2") || u.includes("nsquared") || u.includes("quadratic");
+        },
+        solution: `1) Worst case occurs when input is reverse sorted.
+2) Each element must be compared with all previous elements.
+3) Total comparisons: $1 + 2 + ... + (n-1) = \\frac{n(n-1)}{2} = O(n^2)$.`,
+      };
+    }
+
+    if (type === "stable") {
+      const prompt = `Is Insertion sort stable? Answer yes/no and briefly explain.`;
+      return {
+        prompt,
+        answer: ["yes"],
+        check: (user) => eqAnswer(user, "yes"),
+        solution: `1) Stability means equal keys preserve their relative order.
+2) Insertion sort uses strict "$>$" in the while-condition when shifting.
+3) Equal elements are not shifted past each other, preserving relative order.
+4) Therefore, **yes**, Insertion sort is stable.`,
+      };
+    }
+
+    if (type === "invariant") {
+      const prompt = `What is the loop invariant for Insertion sort after iteration i?`;
+      return {
+        prompt,
+        answer: ["A[0..i] is sorted", "prefix sorted", "first i+1 sorted"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("sort") && (u.includes("0") || u.includes("prefix") || u.includes("first"))) ||
+                 u.includes("a[0..i]") || u.includes("a[0...i]");
+        },
+        solution: `**Loop Invariant:** After iteration $i$, the prefix $A[0..i]$ is sorted.
+
+1) Initially (before iteration 1), $A[0..0]$ is trivially sorted.
+2) Each iteration inserts $A[i]$ into its correct position in $A[0..i-1]$.
+3) This maintains the invariant for $A[0..i]$.`,
+      };
+    }
+
+    // Default: step-by-step trace
     const n = 6;
     const arr = Array.from({ length: n }, () => randInt(0, 20));
     const i = randInt(1, n - 1);
@@ -1020,12 +1216,16 @@
       ui: { type: "sequence", length: n },
       answer: expected,
       check: (user) => Array.isArray(user) && user.join(",") === expected.join(","),
-      solution: `1) Consider iteration $i=${i}$ with key=$A[${i}]$.\n2) Shift elements in the sorted prefix $A[0..${i - 1}]$ that are $>key$ one position to the right.\n3) Insert key into the created gap.\n4) Resulting array: ${formatArray(after)}.`,
+      solution: `1) Consider iteration $i=${i}$ with key=$A[${i}]=${arr[i]}$.
+2) Shift elements in the sorted prefix $A[0..${i - 1}]$ that are $>key$ one position to the right.
+3) Insert key into the created gap.
+4) Resulting array: ${formatArray(after)}.`,
     };
   }
 
   function genMergesort() {
-    const type = sample(["mergecount", "levels", "stable"]);
+    const type = sample(["mergecount", "levels", "stable", "recurrence", "complexity", "space", "mergetrace"]);
+    
     if (type === "mergecount") {
       const m = randInt(1, 8);
       const n = randInt(1, 8);
@@ -1035,9 +1235,12 @@
         prompt,
         answer: [String(ans)],
         check: (user) => normalize(user) === String(ans),
-        solution: `1) In the worst case, you compare until one list becomes empty.\n2) Each comparison places exactly one element into the output.\n3) You can place $m+n-1$ elements before one side empties, so comparisons = $m+n-1=${m}+${n}-1=${ans}$.`,
+        solution: `1) In the worst case, you compare until one list becomes empty.
+2) Each comparison places exactly one element into the output.
+3) You can place $m+n-1$ elements before one side empties, so comparisons = $m+n-1=${m}+${n}-1=${ans}$.`,
       };
     }
+    
     if (type === "levels") {
       const p = sample([3, 4, 5]);
       const N = Math.pow(2, p);
@@ -1047,18 +1250,230 @@
         prompt,
         answer: [String(ans)],
         check: (user) => normalize(user) === String(ans),
-        solution: `1) Each recursion level halves the subproblem size: ${N} \u2192 ${N / 2} \u2192 ${N / 4} \u2192 \u2026 \u2192 1.\n2) After $L$ levels, size is ${N}/2^L$.\n3) Set ${N}/2^L = 1 \u2192 2^L=${N} \u2192 $L=\log_2 ${N}=${p}$.`,
+        solution: `1) Each recursion level halves the subproblem size: ${N} → ${N / 2} → ${N / 4} → … → 1.
+2) After $L$ levels, size is ${N}/2^L.
+3) Set ${N}/2^L = 1 → 2^L=${N} → $L=\\log_2 ${N}=${p}$.`,
       };
     }
+
+    if (type === "recurrence") {
+      const prompt = `What is the recurrence relation for MergeSort's running time?`;
+      return {
+        prompt,
+        answer: ["T(n) = 2T(n/2) + O(n)", "T(n) = 2T(n/2) + n", "2T(n/2) + n"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("2t(n/2)") && (u.includes("+n") || u.includes("+o(n)") || u.includes("+θ(n)"));
+        },
+        solution: `**MergeSort Recurrence:**
+$$T(n) = 2T(n/2) + O(n)$$
+
+1) **2T(n/2)**: Two recursive calls on halves of the array.
+2) **O(n)**: Linear time to merge the two sorted halves.
+3) By Master Theorem (case 2): $T(n) = O(n \\log n)$.`,
+      };
+    }
+
+    if (type === "complexity") {
+      const cases = sample(["best", "worst", "average"]);
+      const prompt = `What is the ${cases}-case time complexity of MergeSort?`;
+      return {
+        prompt,
+        answer: ["O(n log n)", "Θ(n log n)", "n log n", "O(nlogn)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("nlogn") || u.includes("nlog(n)") || (u.includes("n") && u.includes("log"));
+        },
+        solution: `**MergeSort is always $O(n \\log n)$** for best, worst, and average cases.
+
+1) The array is always split into halves regardless of input order.
+2) Merge always takes $O(n)$ time per level.
+3) There are $\\log n$ levels.
+4) Total: $O(n \\log n)$ in **all cases**.`,
+      };
+    }
+
+    if (type === "space") {
+      const prompt = `What is the auxiliary space complexity of (standard) MergeSort?`;
+      return {
+        prompt,
+        answer: ["O(n)", "Θ(n)", "n", "linear"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("o(n)") || u.includes("θ(n)") || u === "n" || u === "linear";
+        },
+        solution: `**MergeSort uses $O(n)$ auxiliary space.**
+
+1) Standard implementation allocates a temporary array for merging.
+2) At each level, we need $O(n)$ space for the merged output.
+3) The recursion stack uses $O(\\log n)$ space.
+4) Dominant term: $O(n)$ for the auxiliary array.`,
+      };
+    }
+
+    if (type === "mergetrace") {
+      // Merge two sorted subarrays
+      const left = [randInt(1, 5), randInt(6, 10), randInt(11, 15)].sort((a, b) => a - b);
+      const right = [randInt(1, 5), randInt(6, 10), randInt(11, 15)].sort((a, b) => a - b);
+      const merged = [...left, ...right].sort((a, b) => a - b);
+      
+      const prompt = `Merge the two sorted arrays: L=${formatArray(left)} and R=${formatArray(right)}. What is the merged result?`;
+      const expected = merged.map(String);
+      return {
+        prompt,
+        ui: { type: "sequence", length: 6 },
+        answer: expected,
+        check: (user) => Array.isArray(user) && user.join(",") === expected.join(","),
+        solution: `1) Compare first elements of L and R, take the smaller.
+2) Repeat until one array is exhausted.
+3) Append remaining elements.
+4) Result: ${formatArray(merged)}.`,
+      };
+    }
+
+    // Default: stable
     return {
       prompt: `Is MergeSort stable? Answer yes/no.`,
       answer: ["yes"],
       check: (user) => eqAnswer(user, "yes"),
-      solution: `1) Stability means equal keys keep their relative order.\n2) During merge, when keys tie, take from the left half first.\n3) That preserves relative order \u2192 MergeSort is stable (with the standard merge).`,
+      solution: `1) Stability means equal keys keep their relative order.
+2) During merge, when keys tie, take from the left half first.
+3) That preserves relative order → MergeSort is stable (with the standard merge).`,
     };
   }
 
   function genQuicksort() {
+    const type = sample(["partition", "worstcase", "bestcase", "stable", "inplace", "recurrence", "pivotchoice"]);
+    
+    if (type === "worstcase") {
+      const prompt = `What is the worst-case time complexity of QuickSort?`;
+      return {
+        prompt,
+        answer: ["O(n^2)", "Θ(n^2)", "n^2", "n squared"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("n^2") || u.includes("n2") || u.includes("nsquared") || u.includes("quadratic");
+        },
+        solution: `**QuickSort worst-case: $O(n^2)$**
+
+1) Worst case occurs when pivot is always the smallest or largest element.
+2) This creates partitions of size $0$ and $n-1$.
+3) Recurrence: $T(n) = T(n-1) + O(n) = O(n^2)$.
+4) Example: Already sorted array with first-element pivot.`,
+      };
+    }
+
+    if (type === "bestcase") {
+      const prompt = `What is the best-case time complexity of QuickSort?`;
+      return {
+        prompt,
+        answer: ["O(n log n)", "Θ(n log n)", "n log n", "O(nlogn)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("nlogn") || u.includes("nlog(n)") || (u.includes("n") && u.includes("log"));
+        },
+        solution: `**QuickSort best-case: $O(n \\log n)$**
+
+1) Best case: pivot always splits array into two equal halves.
+2) Recurrence: $T(n) = 2T(n/2) + O(n)$.
+3) By Master Theorem: $T(n) = O(n \\log n)$.`,
+      };
+    }
+
+    if (type === "stable") {
+      const prompt = `Is QuickSort (standard in-place version) stable? Answer yes/no.`;
+      return {
+        prompt,
+        answer: ["no"],
+        check: (user) => eqAnswer(user, "no"),
+        solution: `**QuickSort is NOT stable.**
+
+1) Partitioning swaps elements across distant positions.
+2) Equal elements may be reordered during swaps.
+3) Example: [3a, 2, 3b, 1] with pivot=2 → after partition, 3a and 3b may swap order.`,
+      };
+    }
+
+    if (type === "inplace") {
+      const prompt = `Is QuickSort an in-place sorting algorithm? Answer yes/no.`;
+      return {
+        prompt,
+        answer: ["yes"],
+        check: (user) => eqAnswer(user, "yes"),
+        solution: `**Yes, QuickSort is in-place.**
+
+1) Partitioning is done by swapping elements within the array.
+2) No auxiliary array is needed (only recursion stack).
+3) Space complexity: $O(\\log n)$ average for recursion stack.`,
+      };
+    }
+
+    if (type === "recurrence") {
+      const caseType = sample(["worst", "best"]);
+      if (caseType === "worst") {
+        const prompt = `What is the recurrence for QuickSort's WORST-case running time?`;
+        return {
+          prompt,
+          answer: ["T(n) = T(n-1) + O(n)", "T(n) = T(n-1) + n"],
+          check: (user) => {
+            const u = normalize(user).replace(/\s+/g, "");
+            return u.includes("t(n-1)") && (u.includes("+n") || u.includes("+o(n)"));
+          },
+          solution: `**Worst-case recurrence:**
+$$T(n) = T(n-1) + O(n)$$
+
+1) One subproblem of size $n-1$ (pivot at extreme).
+2) $O(n)$ work for partitioning.
+3) Solves to $T(n) = O(n^2)$.`,
+        };
+      } else {
+        const prompt = `What is the recurrence for QuickSort's BEST-case running time?`;
+        return {
+          prompt,
+          answer: ["T(n) = 2T(n/2) + O(n)", "T(n) = 2T(n/2) + n"],
+          check: (user) => {
+            const u = normalize(user).replace(/\s+/g, "");
+            return u.includes("2t(n/2)") && (u.includes("+n") || u.includes("+o(n)"));
+          },
+          solution: `**Best-case recurrence:**
+$$T(n) = 2T(n/2) + O(n)$$
+
+1) Two subproblems of size $n/2$ (balanced partition).
+2) $O(n)$ work for partitioning.
+3) Solves to $T(n) = O(n \\log n)$.`,
+        };
+      }
+    }
+
+    if (type === "pivotchoice") {
+      const strategies = [
+        { name: "first element", problem: "already sorted or reverse sorted arrays" },
+        { name: "last element", problem: "already sorted or reverse sorted arrays" },
+        { name: "median-of-three", problem: "reduces worst case probability but doesn't eliminate it" },
+        { name: "random element", problem: "expected O(n log n) but worst case still possible" },
+      ];
+      const strat = sample(strategies);
+      const prompt = `QuickSort pivot selection: What is a potential problem with using the "${strat.name}" as the pivot?`;
+      return {
+        prompt,
+        answer: [strat.problem],
+        check: (user) => {
+          const u = normalize(user);
+          if (strat.name.includes("first") || strat.name.includes("last")) {
+            return u.includes("sorted") || u.includes("worst") || u.includes("n^2") || u.includes("unbalanced");
+          }
+          return u.includes("worst") || u.includes("still") || u.includes("not eliminate");
+        },
+        solution: `**Problem with "${strat.name}" pivot:**
+
+${strat.problem}
+
+For first/last element pivots, sorted inputs cause $O(n^2)$ performance.
+Randomized pivot gives expected $O(n \\log n)$ but worst case is still possible.`,
+      };
+    }
+
+    // Default: partition counting
     const arr = Array.from({ length: 7 }, () => randInt(0, 15));
     const pivot = sample(arr);
     const L = arr.filter((x) => x <= pivot).length;
@@ -1072,11 +1487,70 @@
         if (!Array.isArray(user) || user.length < 2) return false;
         return normalize(user[0]) === String(L) && normalize(user[1]) === String(R);
       },
-      solution: `1) Build $L$ by counting elements $\le ${pivot}$.\n2) Build $R$ by counting elements $> ${pivot}$.\n3) So $|L|=${L}$ and $|R|=${R}$.`,
+      solution: `1) Build $L$ by counting elements $\\le ${pivot}$.
+2) Build $R$ by counting elements $> ${pivot}$.
+3) So $|L|=${L}$ and $|R|=${R}$.`,
     };
   }
 
   function genRadix() {
+    const type = sample(["passes", "complexity", "stable", "counting"]);
+    
+    if (type === "complexity") {
+      const prompt = `What is the time complexity of Radix Sort for n numbers with d digits in base b?`;
+      return {
+        prompt,
+        answer: ["O(d(n+b))", "O(d*(n+b))", "Θ(d(n+b))", "d(n+b)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return (u.includes("d") && u.includes("n") && u.includes("b")) || u.includes("d(n+b)") || u.includes("d*(n+b)");
+        },
+        solution: `**Radix Sort: $O(d(n+b))$**
+
+1) $d$ = number of digits (passes).
+2) Each pass uses counting sort: $O(n + b)$.
+3) Total: $O(d \\cdot (n + b))$.
+4) When $d$ and $b$ are constants, this is $O(n)$.`,
+      };
+    }
+
+    if (type === "stable") {
+      const prompt = `Why must Radix Sort use a stable sorting algorithm for each digit pass?`;
+      return {
+        prompt,
+        answer: ["preserve order", "maintain relative order", "previous digits"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("stable") || u.includes("preserve") || u.includes("order") || u.includes("previous");
+        },
+        solution: `**Radix Sort requires stable digit sorting because:**
+
+1) LSD (Least Significant Digit) Radix Sort processes digits from right to left.
+2) When sorting by digit $i$, elements with equal digit $i$ must retain their order from the previous pass.
+3) This order reflects the correct sorting by digits $0$ through $i-1$.
+4) Without stability, earlier digit orderings would be lost.`,
+      };
+    }
+
+    if (type === "counting") {
+      const prompt = `What sorting algorithm is typically used for each digit pass in Radix Sort?`;
+      return {
+        prompt,
+        answer: ["counting sort", "countingsort", "counting"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("counting");
+        },
+        solution: `**Counting Sort** is used for each digit pass.
+
+1) Counting sort is stable (required for LSD radix).
+2) Counting sort runs in $O(n + k)$ where $k$ is the range.
+3) For base $b$, each digit is in range $[0, b-1]$, so $k = b$.
+4) This gives $O(n + b)$ per pass.`,
+      };
+    }
+
+    // Default: number of passes
     const base = 10;
     const n = randInt(5, 10);
     const maxVal = randInt(50, 9999);
@@ -1087,7 +1561,9 @@
       prompt,
       answer: [String(d)],
       check: (user) => normalize(user) === String(d),
-      solution: `1) LSD radix does one stable pass per digit.\n2) The number of passes $d$ equals the number of digits of the maximum key.\n3) max=${maxVal} has ${d} digits \u2192 $d=${d}$ passes.`,
+      solution: `1) LSD radix does one stable pass per digit.
+2) The number of passes $d$ equals the number of digits of the maximum key.
+3) max=${maxVal} has ${d} digits → $d=${d}$ passes.`,
     };
   }
 
@@ -1110,7 +1586,8 @@
   }
 
   function genHeaps() {
-    const type = sample(["indices", "heapify"]);
+    const type = sample(["indices", "heapify", "buildheap", "extractmax", "insert", "heapsort", "height"]);
+    
     if (type === "indices") {
       const i = randInt(2, 20);
       const prompt = `Heap indices (1-based). For i=${i}, what are parent, left child, right child indices? Answer "p,l,r".`;
@@ -1123,10 +1600,96 @@
         ui: { type: "sequence", length: 3 },
         answer: expected,
         check: (user) => Array.isArray(user) && normalize(user[0]) === expected[0] && normalize(user[1]) === expected[1] && normalize(user[2]) === expected[2],
-        solution: `1) In 1-based indexing: parent=$\u230a i/2\u230b$, left=$2i$, right=$2i+1$.\n2) With $i=${i}$: parent=${p}, left=${l}, right=${r}.`,
+        solution: `1) In 1-based indexing: parent=$\\lfloor i/2\\rfloor$, left=$2i$, right=$2i+1$.
+2) With $i=${i}$: parent=${p}, left=${l}, right=${r}.`,
       };
     }
 
+    if (type === "buildheap") {
+      const n = sample([8, 16, 32, 64]);
+      const prompt = `Build-Max-Heap on an array of ${n} elements: how many times is Max-Heapify called?`;
+      const ans = Math.floor(n / 2);
+      return {
+        prompt,
+        answer: [String(ans)],
+        check: (user) => normalize(user) === String(ans),
+        solution: `**Build-Max-Heap calls Max-Heapify $\\lfloor n/2 \\rfloor$ times.**
+
+1) Leaves don't need heapify (they're trivially heaps).
+2) Leaves are at indices $\\lfloor n/2 \\rfloor + 1$ through $n$.
+3) So we call heapify on indices $\\lfloor n/2 \\rfloor$ down to 1.
+4) For $n=${n}$: $\\lfloor ${n}/2 \\rfloor = ${ans}$ calls.`,
+      };
+    }
+
+    if (type === "extractmax") {
+      const prompt = `What is the time complexity of Extract-Max from a max-heap of n elements?`;
+      return {
+        prompt,
+        answer: ["O(log n)", "Θ(log n)", "log n", "O(logn)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("logn") || u.includes("log(n)");
+        },
+        solution: `**Extract-Max: $O(\\log n)$**
+
+1) Remove root (the max), replace with last element.
+2) Heapify at root to restore heap property.
+3) Heapify takes $O(\\log n)$ (height of heap).`,
+      };
+    }
+
+    if (type === "insert") {
+      const prompt = `What is the time complexity of inserting an element into a heap of n elements?`;
+      return {
+        prompt,
+        answer: ["O(log n)", "Θ(log n)", "log n", "O(logn)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("logn") || u.includes("log(n)");
+        },
+        solution: `**Heap Insert: $O(\\log n)$**
+
+1) Add new element at the end (next available position).
+2) "Bubble up": compare with parent, swap if larger (for max-heap).
+3) At most $O(\\log n)$ swaps (height of heap).`,
+      };
+    }
+
+    if (type === "heapsort") {
+      const prompt = `What is the time complexity of HeapSort?`;
+      return {
+        prompt,
+        answer: ["O(n log n)", "Θ(n log n)", "n log n", "O(nlogn)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("nlogn") || u.includes("nlog(n)") || (u.includes("n") && u.includes("log"));
+        },
+        solution: `**HeapSort: $O(n \\log n)$**
+
+1) Build-Max-Heap: $O(n)$.
+2) Extract-Max $n$ times, each $O(\\log n)$.
+3) Total: $O(n) + O(n \\log n) = O(n \\log n)$.`,
+      };
+    }
+
+    if (type === "height") {
+      const n = sample([7, 15, 31, 63, 127]);
+      const h = Math.floor(Math.log2(n));
+      const prompt = `A heap with ${n} elements has what height? (Height = edges from root to deepest leaf)`;
+      return {
+        prompt,
+        answer: [String(h)],
+        check: (user) => normalize(user) === String(h),
+        solution: `**Heap height = $\\lfloor \\log_2 n \\rfloor$**
+
+1) A heap is a nearly complete binary tree.
+2) Height = $\\lfloor \\log_2 n \\rfloor$.
+3) For $n=${n}$: $\\lfloor \\log_2 ${n} \\rfloor = ${h}$.`,
+      };
+    }
+
+    // Default: heapify trace
     const arr = Array.from({ length: 7 }, () => randInt(0, 30));
     // heapify at index 0 for 0-based representation (simplified)
     function heapify0(a, idx, heapSize) {
@@ -1151,7 +1714,9 @@
       ui: { type: "sequence", length: arr.length },
       answer: expected,
       check: (user) => Array.isArray(user) && user.join(",") === expected.join(","),
-      solution: `1) Compare the root with its children; swap with the larger child if the heap property is violated.\n2) Continue bubbling the swapped element down until the property holds.\n3) After heapify at index 0, the array is ${formatArray(after)}.`,
+      solution: `1) Compare the root with its children; swap with the larger child if the heap property is violated.
+2) Continue bubbling the swapped element down until the property holds.
+3) After heapify at index 0, the array is ${formatArray(after)}.`,
     };
   }
 
@@ -1638,7 +2203,87 @@ ${formatMatrix(expected)}.`,
     const g = makeReadableUndirectedWeightedGraph();
     const n = g.nodes.length;
     const edges = g.edges;
-    const type = sample(["weight", "kruskal_order", "prim_order", "safeedge"]);
+    const type = sample(["weight", "kruskal_order", "prim_order", "safeedge", "cut_property", "complexity", "uniqueness"]);
+
+    if (type === "cut_property") {
+      const prompt = `State the Cut Property for MSTs.`;
+      return {
+        prompt,
+        answer: ["minimum weight edge crossing any cut is in some MST"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("minimum") || u.includes("light")) && 
+                 (u.includes("cut") || u.includes("cross")) &&
+                 (u.includes("mst") || u.includes("safe"));
+        },
+        solution: `**Cut Property:**
+
+For any cut $(S, V \\setminus S)$ of the graph, the minimum weight edge crossing the cut belongs to some MST.
+
+**Formally:** Let $e = (u, v)$ be a minimum-weight edge with $u \\in S$ and $v \\notin S$. Then $e$ is in some MST.
+
+**Why it works:** If an MST $T$ doesn't contain $e$, adding $e$ creates a cycle. This cycle must cross the cut again, so swapping $e$ for that heavier edge gives an MST with $e$.`,
+      };
+    }
+
+    if (type === "complexity") {
+      const algo = sample(["kruskal", "prim"]);
+      if (algo === "kruskal") {
+        const prompt = `What is the time complexity of Kruskal's algorithm using union-find with path compression?`;
+        return {
+          prompt,
+          answer: ["O(E log E)", "O(E log V)", "O(|E| log |E|)"],
+          check: (user) => {
+            const u = normalize(user).replace(/\s+/g, "");
+            return u.includes("eloge") || u.includes("elogv") || u.includes("|e|log");
+          },
+          solution: `**Kruskal's Complexity: $O(E \\log E)$**
+
+1) Sort edges: $O(E \\log E)$.
+2) Union-find operations: $O(E \\cdot \\alpha(V))$ where $\\alpha$ is inverse Ackermann.
+3) Since $\\alpha(V)$ is nearly constant, total is $O(E \\log E)$.
+4) Note: $O(E \\log E) = O(E \\log V)$ since $E \\le V^2$.`,
+        };
+      } else {
+        const prompt = `What is the time complexity of Prim's algorithm using a binary heap?`;
+        return {
+          prompt,
+          answer: ["O(E log V)", "O((E+V) log V)", "O(|E| log |V|)"],
+          check: (user) => {
+            const u = normalize(user).replace(/\s+/g, "");
+            return u.includes("elogv") || u.includes("(e+v)logv") || u.includes("|e|log|v|");
+          },
+          solution: `**Prim's Complexity (binary heap): $O(E \\log V)$**
+
+1) Each vertex is extracted once: $O(V \\log V)$.
+2) Each edge causes at most one decrease-key: $O(E \\log V)$.
+3) Total: $O((V + E) \\log V) = O(E \\log V)$ for connected graphs.
+
+**With Fibonacci heap:** $O(E + V \\log V)$.`,
+        };
+      }
+    }
+
+    if (type === "uniqueness") {
+      const prompt = `When is the MST unique?`;
+      return {
+        prompt,
+        answer: ["all edge weights are distinct", "no two edges have same weight"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("distinct") || u.includes("unique") || u.includes("different") || u.includes("no tie");
+        },
+        solution: `**MST Uniqueness:**
+
+The MST is unique if and only if all edge weights are distinct.
+
+**Proof idea:**
+- If all weights are distinct, there's a unique minimum-weight edge crossing each cut.
+- If two edges have the same weight, they might be interchangeable in different MSTs.
+
+**Example of non-unique MST:** Triangle with edges of weight 1, 1, 2. Two different MSTs exist.`,
+      };
+    }
 
     if (type === "safeedge") {
       const prompt = `MST cut property: consider any cut (S, V\\S). The minimum-weight edge crossing the cut is ____ (i.e., belongs to some MST). Answer with one word.`;
@@ -1718,6 +2363,7 @@ ${formatMatrix(expected)}.`,
       };
     }
 
+    // Default: MST total weight
     const mstWeight = kruskalMST(n, edges);
     const prompt = `Find the MST total weight (Kruskal).`;
     return {
@@ -1732,12 +2378,107 @@ ${formatMatrix(expected)}.`,
       },
       answer: [String(mstWeight)],
       check: (user) => normalize(user) === String(mstWeight),
-      solution: `1) Sort edges by increasing weight.\n2) Scan edges: add an edge if it connects two different components (doesn't create a cycle).\n3) Stop after selecting $V-1$ edges.\n4) Total MST weight = ${mstWeight}.`,
+      solution: `1) Sort edges by increasing weight.
+2) Scan edges: add an edge if it connects two different components (doesn't create a cycle).
+3) Stop after selecting $V-1$ edges.
+4) Total MST weight = ${mstWeight}.`,
     };
   }
 
   function genDP() {
-    const type = sample(["lcs_matrix", "lcs_string", "knap"]);
+    const type = sample(["lcs_matrix", "lcs_string", "knap", "lcs_recurrence", "optimal_substructure", "memoization", "tabulation"]);
+    
+    if (type === "lcs_recurrence") {
+      const prompt = `Write the recurrence relation for LCS (Longest Common Subsequence) of strings X[1..m] and Y[1..n].`;
+      return {
+        prompt,
+        answer: ["LCS[i][j] = LCS[i-1][j-1] + 1 if X[i]=Y[j], else max(LCS[i-1][j], LCS[i][j-1])"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          const hasMatch = u.includes("+1") || u.includes("1+");
+          const hasMax = u.includes("max");
+          const hasBase = u.includes("i-1") || u.includes("j-1");
+          return hasMatch && hasMax && hasBase;
+        },
+        solution: `**LCS Recurrence:**
+
+$$
+\\text{LCS}[i][j] = \\begin{cases} 
+0 & \\text{if } i=0 \\text{ or } j=0 \\\\
+\\text{LCS}[i-1][j-1] + 1 & \\text{if } X[i] = Y[j] \\\\
+\\max(\\text{LCS}[i-1][j], \\text{LCS}[i][j-1]) & \\text{otherwise}
+\\end{cases}
+$$
+
+1) Base case: empty prefix has LCS length 0.
+2) If characters match, extend the LCS.
+3) Otherwise, take the better of dropping from either string.`,
+      };
+    }
+
+    if (type === "optimal_substructure") {
+      const prompt = `What is "optimal substructure" in dynamic programming?`;
+      return {
+        prompt,
+        answer: ["optimal solution contains optimal solutions to subproblems"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("optimal") && u.includes("subproblem")) || 
+                 (u.includes("solution") && u.includes("composed")) ||
+                 (u.includes("best") && u.includes("sub"));
+        },
+        solution: `**Optimal Substructure:**
+
+A problem has optimal substructure if an optimal solution can be constructed from optimal solutions of its subproblems.
+
+**Examples:**
+- Shortest paths: optimal path A→C through B = optimal A→B + optimal B→C.
+- LCS: if last characters match, LCS includes that character + LCS of prefixes.
+
+This property is essential for both greedy and DP algorithms.`,
+      };
+    }
+
+    if (type === "memoization") {
+      const prompt = `What is memoization in dynamic programming? How does it differ from tabulation?`;
+      return {
+        prompt,
+        answer: ["top-down", "cache", "recursive with storage"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("top") || u.includes("cache") || u.includes("memo") || u.includes("recursive");
+        },
+        solution: `**Memoization (Top-Down DP):**
+
+1) Start with the original problem and recurse.
+2) Before computing a subproblem, check if it's already solved (cached).
+3) Store results to avoid recomputation.
+
+**vs Tabulation (Bottom-Up):**
+- Tabulation fills the DP table iteratively from base cases.
+- Memoization computes only needed subproblems lazily.`,
+      };
+    }
+
+    if (type === "tabulation") {
+      const prompt = `In bottom-up (tabulation) DP, in what order must we fill the table?`;
+      return {
+        prompt,
+        answer: ["base cases first", "smaller subproblems first", "topological order"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("base") || u.includes("small") || u.includes("order") || u.includes("depend") || u.includes("topological");
+        },
+        solution: `**Tabulation Order:**
+
+1) Start with base cases (smallest subproblems).
+2) Fill entries in order such that when computing $dp[i][j]$, all its dependencies are already computed.
+3) This is essentially a topological order on the subproblem DAG.
+
+**Example (LCS):** Fill row by row, left to right.`,
+      };
+    }
+
     if (type === "lcs_matrix") {
       const alphabet = ["A", "B", "C", "D"]; 
       const a = Array.from({ length: randInt(2, 3) }, () => sample(alphabet)).join("");
@@ -1759,7 +2500,13 @@ ${formatMatrix(expected)}.`,
         ui: { type: "matrix", rows: n + 1, cols: m + 1 },
         answer: dp.map((row) => row.map(String)),
         check: (user) => matrixEq(user, dp.map((row) => row.map(String))),
-        solution: `1) Define $dp[i][j]$ = LCS length of $S[0..i)$ and $T[0..j)$.\n2) Base cases: $dp[0][*]=0$ and $dp[*][0]=0$.\n3) Transition: if chars match, $dp[i][j]=dp[i-1][j-1]+1$; else $dp[i][j]=\max(dp[i-1][j],dp[i][j-1])$.\n4) Fill row-by-row (or col-by-col).\n5) Final table (rows $i=0..${n}$, cols $j=0..${m}$):\n${formatMatrix(dp)}\n6) LCS length = $dp[${n}][${m}]=${dp[n][m]}$.`,
+        solution: `1) Define $dp[i][j]$ = LCS length of $S[0..i)$ and $T[0..j)$.
+2) Base cases: $dp[0][*]=0$ and $dp[*][0]=0$.
+3) Transition: if chars match, $dp[i][j]=dp[i-1][j-1]+1$; else $dp[i][j]=\\max(dp[i-1][j],dp[i][j-1])$.
+4) Fill row-by-row (or col-by-col).
+5) Final table (rows $i=0..${n}$, cols $j=0..${m}$):
+${formatMatrix(dp)}
+6) LCS length = $dp[${n}][${m}]=${dp[n][m]}$.`,
       };
     }
 
@@ -1787,10 +2534,12 @@ ${formatMatrix(expected)}.`,
 2) The optimal length is $dp[|S|][|T|]=${optimalLen}$.
 3) Any common subsequence of length ${optimalLen} is a valid answer.
 4) One valid LCS is: "${res.str}".
-5) DP table (optional):\n${formatMatrix(dp)}.`,
+5) DP table (optional):
+${formatMatrix(dp)}.`,
       };
     }
 
+    // Default: knapsack
     const cap = randInt(6, 12);
     const items = Array.from({ length: 4 }, () => ({ w: randInt(1, 6), v: randInt(1, 12) }));
     const ans = knapsack01(items, cap);
@@ -1799,12 +2548,111 @@ ${formatMatrix(expected)}.`,
       prompt,
       answer: [String(ans)],
       check: (user) => normalize(user) === String(ans),
-      solution: `1) Let $dp[c]$ be the best value achievable with capacity $c$.\n2) For each item $(w,v)$, update capacities from high\u2192low: $dp[c]=\max(dp[c], dp[c-w]+v)$.\n3) After processing all items, answer is $dp[${cap}]=${ans}$.`,
+      solution: `1) Let $dp[c]$ be the best value achievable with capacity $c$.
+2) For each item $(w,v)$, update capacities from high→low: $dp[c]=\\max(dp[c], dp[c-w]+v)$.
+3) After processing all items, answer is $dp[${cap}]=${ans}$.`,
     };
   }
 
   function genGreedy() {
-    const type = sample(["activity", "huffman"]);
+    const type = sample(["activity", "huffman", "greedy_choice", "fractional_knapsack", "matroid"]);
+    
+    if (type === "greedy_choice") {
+      const prompt = `What is the "greedy choice property" in algorithm design?`;
+      return {
+        prompt,
+        answer: ["locally optimal leads to global optimal", "best immediate choice"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("local") && u.includes("global")) || 
+                 (u.includes("best") && u.includes("choice")) ||
+                 u.includes("greedy choice");
+        },
+        solution: `**Greedy Choice Property:**
+
+A problem has the greedy choice property if a globally optimal solution can be reached by making locally optimal (greedy) choices.
+
+**Key points:**
+1) At each step, make the choice that looks best right now.
+2) This locally optimal choice leads to a globally optimal solution.
+3) Unlike DP, we don't need to consider all subproblems.
+
+**Examples:** Activity selection (pick earliest finish time), Huffman (combine smallest frequencies).`,
+      };
+    }
+
+    if (type === "fractional_knapsack") {
+      const cap = 10;
+      const items = [
+        { w: 4, v: 12 },  // ratio 3
+        { w: 6, v: 12 },  // ratio 2
+        { w: 2, v: 5 },   // ratio 2.5
+      ];
+      // Sort by value/weight ratio descending
+      const sorted = [...items].sort((a, b) => (b.v / b.w) - (a.v / a.w));
+      
+      let remaining = cap;
+      let total = 0;
+      for (const item of sorted) {
+        if (remaining >= item.w) {
+          total += item.v;
+          remaining -= item.w;
+        } else {
+          total += (remaining / item.w) * item.v;
+          remaining = 0;
+          break;
+        }
+      }
+
+      const prompt = `Fractional Knapsack: capacity=${cap}. Items (w,v): (4,12), (6,12), (2,5). What is the optimal value using the greedy algorithm?`;
+      return {
+        prompt,
+        answer: [String(total)],
+        check: (user) => {
+          const u = Number(normalize(user));
+          return Math.abs(u - total) < 0.01;
+        },
+        solution: `**Greedy Fractional Knapsack:**
+
+1) Compute value/weight ratio for each item:
+   - (4,12): ratio = 3
+   - (6,12): ratio = 2  
+   - (2,5): ratio = 2.5
+
+2) Sort by ratio (descending): (4,12), (2,5), (6,12)
+
+3) Greedily take items:
+   - Take all of (4,12): capacity used = 4, value = 12
+   - Take all of (2,5): capacity used = 6, value = 17
+   - Take 4/6 of (6,12): capacity used = 10, value = 17 + 8 = 25
+
+**Optimal value: ${total}**`,
+      };
+    }
+
+    if (type === "matroid") {
+      const prompt = `What structure must a problem have for a greedy algorithm to be optimal?`;
+      return {
+        prompt,
+        answer: ["greedy choice property and optimal substructure", "matroid"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("greedy") && u.includes("substructure")) || 
+                 u.includes("matroid") ||
+                 (u.includes("choice") && u.includes("property"));
+        },
+        solution: `**Conditions for Greedy Optimality:**
+
+1) **Greedy Choice Property:** A locally optimal choice leads to a globally optimal solution.
+
+2) **Optimal Substructure:** After making the greedy choice, the remaining problem is smaller but of the same type.
+
+**Matroid Theory:** Many greedy algorithms can be proven correct using matroid theory, which generalizes when greedy works.
+
+**Examples where greedy works:** MST (Kruskal's/Prim's), Activity Selection, Huffman Coding.`,
+      };
+    }
+
     if (type === "activity") {
       const intervals = Array.from({ length: 6 }, () => {
         const s = randInt(0, 9);
@@ -1828,10 +2676,14 @@ ${formatMatrix(expected)}.`,
         prompt,
         answer: [String(count)],
         check: (user) => normalize(user) === String(count),
-        solution: `1) Sort intervals by finish time (already sorted here).\n2) Greedily take the earliest-finishing interval compatible with the last chosen finish.\n3) Repeat until done.\n4) Total selected = ${count}.`,
+        solution: `1) Sort intervals by finish time (already sorted here).
+2) Greedily take the earliest-finishing interval compatible with the last chosen finish.
+3) Repeat until done.
+4) Total selected = ${count}.`,
       };
     }
 
+    // Default: Huffman
     const freqs = Array.from({ length: 5 }, () => randInt(1, 20)).sort((a, b) => a - b);
     const prompt = `Huffman coding: given frequencies ${freqs.join(", ")}, what are the two smallest frequencies combined first? Answer "x+y".`;
     const ans = `${freqs[0]}+${freqs[1]}`;
@@ -1839,17 +2691,89 @@ ${formatMatrix(expected)}.`,
       prompt,
       answer: [ans, `${freqs[0]} + ${freqs[1]}`],
       check: (user) => normalize(user).replace(/\s+/g, "") === ans,
-      solution: `1) Huffman builds a tree by repeatedly merging the two smallest frequencies.\n2) The two smallest here are ${freqs[0]} and ${freqs[1]}.\n3) First merge: ${freqs[0]}+${freqs[1]}.`,
+      solution: `1) Huffman builds a tree by repeatedly merging the two smallest frequencies.
+2) The two smallest here are ${freqs[0]} and ${freqs[1]}.
+3) First merge: ${freqs[0]}+${freqs[1]}.`,
     };
   }
 
   function genFlow() {
-    const type = sample(["maxflow", "mincut", "residual1"]);
+    const type = sample(["maxflow", "mincut", "residual1", "maxflow_mincut", "bipartite", "ff_complexity"]);
     const g = makeReadableFlowNetwork();
     const n = g.nodes.length;
     const s = 0;
     const t = 5;
     const edges = g.edges;
+
+    if (type === "maxflow_mincut") {
+      const prompt = `State the Max-Flow Min-Cut theorem.`;
+      return {
+        prompt,
+        answer: ["max flow equals min cut"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("max") && u.includes("min") && u.includes("equal")) ||
+                 (u.includes("flow") && u.includes("cut") && u.includes("="));
+        },
+        solution: `**Max-Flow Min-Cut Theorem:**
+
+The maximum flow from source $s$ to sink $t$ equals the minimum capacity of any $s$-$t$ cut.
+
+**Formally:** 
+$$\\max_{f} |f| = \\min_{(S,T)} c(S,T)$$
+
+Where:
+- $|f|$ is the value of flow $f$
+- $c(S,T)$ is the capacity of cut $(S,T)$ with $s \\in S$ and $t \\in T$
+
+**Implication:** When Ford-Fulkerson terminates, the resulting cut is minimum.`,
+      };
+    }
+
+    if (type === "bipartite") {
+      const prompt = `How can max-flow be used to find a maximum bipartite matching?`;
+      return {
+        prompt,
+        answer: ["add source and sink", "connect source to left, sink to right, edges capacity 1"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("source") || u.includes("sink")) ||
+                 (u.includes("capacity") && u.includes("1")) ||
+                 u.includes("bipartite");
+        },
+        solution: `**Maximum Bipartite Matching via Max-Flow:**
+
+1) **Create super-source $s$:** Connect $s$ to all vertices in left partition with capacity 1.
+
+2) **Create super-sink $t$:** Connect all vertices in right partition to $t$ with capacity 1.
+
+3) **Original edges:** Direct edges from left to right with capacity 1.
+
+4) **Run max-flow:** The max-flow value equals the maximum matching size.
+
+5) **Recover matching:** Edges with flow = 1 form the matching.`,
+      };
+    }
+
+    if (type === "ff_complexity") {
+      const prompt = `What is the time complexity of Edmonds-Karp (BFS-based Ford-Fulkerson)?`;
+      return {
+        prompt,
+        answer: ["O(VE^2)", "O(V*E^2)", "O(|V||E|^2)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("ve^2") || u.includes("ve2") || u.includes("|v||e|^2");
+        },
+        solution: `**Edmonds-Karp Complexity: $O(VE^2)$**
+
+1) Each BFS takes $O(E)$ time.
+2) Each augmentation increases the distance from $s$ to at least one vertex.
+3) At most $O(VE)$ augmentations are needed.
+4) Total: $O(VE) \\cdot O(E) = O(VE^2)$.
+
+**Note:** Basic Ford-Fulkerson (DFS) can take $O(E \\cdot |f^*|)$ where $f^*$ is max flow value.`,
+      };
+    }
 
     if (type === "residual1") {
       const step = firstEdmondsKarpAugmentation(n, edges, s, t);
@@ -1872,8 +2796,8 @@ ${formatMatrix(expected)}.`,
           },
           answer: expected,
           check: (user) => matrixEq(user, expected),
-          solution: `1) Augment by $\Delta = ${step.add}$ along the first BFS path.
-2) For each path edge $(u,v)$: residual forward decreases by $\Delta$, residual backward increases by $\Delta$.
+          solution: `1) Augment by $\\Delta = ${step.add}$ along the first BFS path.
+2) For each path edge $(u,v)$: residual forward decreases by $\\Delta$, residual backward increases by $\\Delta$.
 3) Residuals [fwd,back] for the path edges in order: ${formatMatrix(expected)}.`,
         };
       }
@@ -1910,10 +2834,11 @@ ${formatMatrix(expected)}.`,
 2) In the final residual graph, do a BFS/DFS from $s$ following only edges with positive residual capacity.
 3) The reachable vertices form $S$; the rest form $T$.
 4) This $(S,T)$ is an $s$–$t$ minimum cut.
-5) Here, $S = {${cutS.join(", ")}}$.`,
+5) Here, $S = \\{${cutS.join(", ")}\\}$.`,
       };
     }
 
+    // Default: max flow value
     const ans = edmondsKarp(n, edges, s, t);
     const prompt = `Max flow value from s=${s} to t=${t}.`;
     return {
@@ -1938,6 +2863,718 @@ ${formatMatrix(expected)}.`,
     };
   }
 
+  // ===== Exam Prep True/False Generator =====
+  function genExamPrep() {
+    // Comprehensive pool of true/false questions covering typical exam topics
+    const questions = [
+      // Sorting & Complexity
+      {
+        statement: "The running time of Insertion sort is $O(n^2)$.",
+        answer: true,
+        explanation: "Insertion sort has worst-case and average-case $O(n^2)$ due to nested loops. Best case is $O(n)$ when already sorted, but $O(n^2)$ is still a valid upper bound."
+      },
+      {
+        statement: "The running time of Heap sort is $O(n \\log n)$.",
+        answer: true,
+        explanation: "Heap sort builds a heap in $O(n)$ and performs $n$ extract-max operations each taking $O(\\log n)$, giving $O(n \\log n)$ total."
+      },
+      {
+        statement: "Given two sorted arrays $A[1..n]$ and $B[1..n]$, we can merge them into one sorted array in $O(n)$ time.",
+        answer: true,
+        explanation: "The merge operation uses two pointers and makes a single pass through both arrays, resulting in $O(n)$ time."
+      },
+      {
+        statement: "For any instance of size $n$, Insertion sort takes $\\Omega(n^2)$ time.",
+        answer: false,
+        explanation: "This is false. When the input is already sorted, Insertion sort runs in $O(n)$ time (best case). $\\Omega(n^2)$ would mean every input requires $n^2$ time."
+      },
+      {
+        statement: "Insertion sort is stable.",
+        answer: true,
+        explanation: "Insertion sort preserves the relative order of equal elements because it only shifts elements that are strictly greater than the key."
+      },
+      {
+        statement: "QuickSort is always $O(n \\log n)$.",
+        answer: false,
+        explanation: "QuickSort has worst-case $O(n^2)$ when pivots are consistently bad (e.g., already sorted input with first element as pivot). Expected time with random pivots is $O(n \\log n)$."
+      },
+      {
+        statement: "For any input of $n$, the running time of randomized QuickSort is $O(n \\log n)$ in expectation.",
+        answer: true,
+        explanation: "Randomized QuickSort has expected running time $O(n \\log n)$ due to the high probability of balanced partitions."
+      },
+      {
+        statement: "MergeSort is an in-place sorting algorithm.",
+        answer: false,
+        explanation: "MergeSort requires $O(n)$ auxiliary space for the merge step, so it is not in-place."
+      },
+      {
+        statement: "HeapSort is a stable sorting algorithm.",
+        answer: false,
+        explanation: "HeapSort is not stable because the heap operations can change the relative order of equal elements."
+      },
+
+      // Asymptotic Notation
+      {
+        statement: "If $f = O(g)$ and $g = O(h)$, then we have $f = O(h)$.",
+        answer: true,
+        explanation: "Big-O is transitive. If $f \\le c_1 g$ for large $n$ and $g \\le c_2 h$ for large $n$, then $f \\le c_1 c_2 h$."
+      },
+      {
+        statement: "$n \\log n = O(n^2)$.",
+        answer: true,
+        explanation: "Since $\\log n < n$ for $n > 1$, we have $n \\log n < n \\cdot n = n^2$, so $n \\log n = O(n^2)$."
+      },
+      {
+        statement: "$n^2 = O(n \\log n)$.",
+        answer: false,
+        explanation: "$n^2$ grows faster than $n \\log n$, so $n^2$ is not $O(n \\log n)$."
+      },
+      {
+        statement: "$2^{n+1} = O(2^n)$.",
+        answer: true,
+        explanation: "$2^{n+1} = 2 \\cdot 2^n$, which is just a constant factor times $2^n$."
+      },
+      {
+        statement: "$2^{2n} = O(2^n)$.",
+        answer: false,
+        explanation: "$2^{2n} = (2^n)^2$, which grows much faster than $2^n$."
+      },
+
+      // Heaps
+      {
+        statement: "If we implement the min priority queue using a binary heap, we can implement Extract-Min in $O(1)$ time.",
+        answer: false,
+        explanation: "Extract-Min requires removing the root and then heapifying down, which takes $O(\\log n)$ time. Only Find-Min is $O(1)$."
+      },
+      {
+        statement: "We can build a max heap in $O(n)$ time.",
+        answer: true,
+        explanation: "Build-Max-Heap runs heapify from the bottom up. The sum of work is $O(n)$ due to the geometric series where most nodes are near the bottom."
+      },
+      {
+        statement: "In a max-heap, the smallest element must be a leaf.",
+        answer: true,
+        explanation: "In a max-heap, every parent is larger than its children, so the smallest element cannot have any children—it must be a leaf."
+      },
+      {
+        statement: "Insert operation in a binary heap takes $O(\\log n)$ time.",
+        answer: true,
+        explanation: "Insert adds an element at the end and bubbles up, which takes at most $O(\\log n)$ swaps along the height of the tree."
+      },
+
+      // Selection
+      {
+        statement: "We can find the median of $n$ integers in $O(n)$ time.",
+        answer: true,
+        explanation: "The median-of-medians algorithm (k-SELECT) finds any order statistic, including the median, in worst-case $O(n)$ time."
+      },
+      {
+        statement: "Finding the minimum of $n$ elements requires $\\Omega(n)$ comparisons.",
+        answer: true,
+        explanation: "Every element except the minimum must lose at least one comparison, requiring at least $n-1$ comparisons."
+      },
+
+      // Linear-Time Sorting
+      {
+        statement: "Suppose we are given $n$ integers with values ranging from 0 to 1000. There exist no linear time algorithms for sorting these $n$ numbers.",
+        answer: false,
+        explanation: "Counting sort can sort $n$ integers in range $[0, k]$ in $O(n + k)$ time. With $k = 1000$, this is $O(n)$."
+      },
+      {
+        statement: "Radix sort requires a stable sorting algorithm for each digit.",
+        answer: true,
+        explanation: "Radix sort processes digits from least to most significant. Stability ensures that the ordering from previous digits is preserved."
+      },
+      {
+        statement: "Comparison-based sorting algorithms have a lower bound of $\\Omega(n \\log n)$.",
+        answer: true,
+        explanation: "The decision tree model shows that any comparison-based sort needs at least $\\log_2(n!) = \\Omega(n \\log n)$ comparisons."
+      },
+
+      // Decision Trees & Lower Bounds
+      {
+        statement: "In the decision tree of the MergeSort algorithm on $n$ elements, every path from the root to a leaf node in the tree has at most $O(n \\log n)$ edges.",
+        answer: true,
+        explanation: "Each comparison is an edge. MergeSort makes at most $O(n \\log n)$ comparisons, so each root-to-leaf path has at most that many edges."
+      },
+
+      // Matrix Multiplication
+      {
+        statement: "Strassen's algorithm can multiply two $n \\times n$ matrices in $O(n^2)$ time.",
+        answer: false,
+        explanation: "Strassen's algorithm runs in $O(n^{\\log_2 7}) \\approx O(n^{2.81})$, which is better than $O(n^3)$ but not $O(n^2)$."
+      },
+      {
+        statement: "The naive matrix multiplication algorithm runs in $O(n^3)$ time.",
+        answer: true,
+        explanation: "Naive matrix multiplication uses three nested loops, each iterating $n$ times, giving $O(n^3)$."
+      },
+
+      // Recurrences
+      {
+        statement: "If we solve $T(n) = 4T(n/2) + n$, then we obtain $T(n) = \\Theta(n \\log n)$.",
+        answer: false,
+        explanation: "Using Master Theorem: $a=4$, $b=2$, $f(n)=n$. Since $n^{\\log_2 4} = n^2 > n$, Case 1 applies: $T(n) = \\Theta(n^2)$."
+      },
+      {
+        statement: "For $T(n) = 2T(n/2) + \\Theta(n^2)$, we get $T(n) = \\Theta(n^2)$.",
+        answer: true,
+        explanation: "Master Theorem Case 3: $n^{\\log_2 2} = n$, and $n^2$ dominates $n$, so $T(n) = \\Theta(n^2)$."
+      },
+      {
+        statement: "For $T(n) = 2T(n/2) + \\Theta(n)$, we get $T(n) = \\Theta(n \\log n)$.",
+        answer: true,
+        explanation: "Master Theorem Case 2: $a = b^d$ where $a=2$, $b=2$, $d=1$, so $T(n) = \\Theta(n \\log n)$."
+      },
+
+      // Trees & Graphs Basics
+      {
+        statement: "If we add an edge to a tree, it creates a cycle.",
+        answer: true,
+        explanation: "A tree on $n$ vertices has exactly $n-1$ edges and is connected. Adding any edge creates a cycle since there's already a path between any two vertices."
+      },
+      {
+        statement: "Any undirected graph $G = (V, E)$ with $|V| = |E|$ must be connected.",
+        answer: false,
+        explanation: "A graph can have $|V| = |E|$ and still be disconnected. For example: a triangle (3 vertices, 3 edges) plus an isolated vertex (4 vertices, 3 edges)—wait, that's $|V| \\neq |E|$. Actually: 4 vertices forming a cycle (4 edges) vs 3 vertices with 3 edges triangle + 1 isolated = 4V, 3E. Consider: 5 vertices, 5 edges could be a 4-cycle plus an isolated vertex with a self-loop... Simpler: a tree on 4 vertices has 3 edges; adding 1 edge makes a cycle with 4 edges = 4 vertices. But two components with a total of 4 vertices and 4 edges: e.g., two triangles sharing a vertex = 5 vertices, 6 edges. Better example: Consider 4 vertices: one triangle (3V, 3E) + one isolated vertex = 4V, 3E. To get 4V, 4E: one 4-cycle is connected. But a triangle (3E) + one edge elsewhere among 4 vertices... The key insight: a connected graph on $n$ vertices has at least $n-1$ edges. With $|V|=|E|=n$, there's exactly one cycle. But multiple components could also have $|V|=|E|$: two separate components each containing exactly one cycle. Example: two triangles = 6V, 6E, not connected."
+      },
+      {
+        statement: "A tree with $n$ vertices has exactly $n - 1$ edges.",
+        answer: true,
+        explanation: "By definition, a tree is a connected acyclic graph, and any such graph on $n$ vertices has exactly $n-1$ edges."
+      },
+      {
+        statement: "Every connected undirected graph has a spanning tree.",
+        answer: true,
+        explanation: "We can construct a spanning tree by running BFS or DFS from any vertex, or by removing edges from cycles until no cycles remain."
+      },
+
+      // BFS & DFS
+      {
+        statement: "We can implement BFS using a stack.",
+        answer: false,
+        explanation: "BFS uses a queue (FIFO) to explore vertices in order of distance. Using a stack gives DFS behavior, not BFS."
+      },
+      {
+        statement: "BFS can find shortest paths in weighted graphs.",
+        answer: false,
+        explanation: "BFS finds shortest paths only in unweighted graphs (or graphs with uniform edge weights). For weighted graphs, use Dijkstra or Bellman-Ford."
+      },
+      {
+        statement: "DFS can be used to detect cycles in a directed graph.",
+        answer: true,
+        explanation: "A directed graph has a cycle if and only if DFS finds a back edge (an edge to a gray/in-progress vertex)."
+      },
+      {
+        statement: "BFS and DFS both run in $O(V + E)$ time using adjacency lists.",
+        answer: true,
+        explanation: "Both algorithms visit each vertex once and examine each edge once (or twice for undirected graphs), giving $O(V + E)$."
+      },
+
+      // Shortest Paths
+      {
+        statement: "Given a DAG $G = (V, E)$ with weighted edges, we can compute the shortest distance from $s \\in V$ to each vertex in time $O(V + E)$.",
+        answer: true,
+        explanation: "For a DAG, we can topologically sort in $O(V+E)$, then relax edges in topological order. Each edge is relaxed once, giving $O(V + E)$ total."
+      },
+      {
+        statement: "If we run Bellman-Ford algorithm, for any unreachable vertex $v$, we have $v.d = \\infty$ at the end of the algorithm.",
+        answer: true,
+        explanation: "Bellman-Ford initializes all distances to $\\infty$ except the source. If a vertex is unreachable, no relaxation will ever update its distance."
+      },
+      {
+        statement: "The running time of Dijkstra's algorithm is $O(V + E)$.",
+        answer: false,
+        explanation: "Dijkstra's algorithm is $O((V + E) \\log V)$ with a binary heap, or $O(V^2)$ with an array. It cannot be $O(V+E)$ because of the priority queue operations."
+      },
+      {
+        statement: "Dijkstra's algorithm works correctly with negative edge weights.",
+        answer: false,
+        explanation: "Dijkstra's algorithm assumes non-negative edge weights. With negative edges, a settled vertex might later find a shorter path, violating the algorithm's correctness."
+      },
+      {
+        statement: "Bellman-Ford can detect negative-weight cycles.",
+        answer: true,
+        explanation: "After $V-1$ relaxation passes, if any edge can still be relaxed, there is a negative-weight cycle reachable from the source."
+      },
+      {
+        statement: "If all edge weights are 1, BFS can compute shortest paths.",
+        answer: true,
+        explanation: "With unit edge weights, the number of edges equals the path weight. BFS explores by number of edges, so it finds shortest paths."
+      },
+
+      // MST
+      {
+        statement: "Kruskal's algorithm runs in $O(E \\log E)$ time.",
+        answer: true,
+        explanation: "Kruskal's sorts edges in $O(E \\log E)$ and uses Union-Find operations that are nearly $O(1)$ amortized, giving $O(E \\log E)$ total."
+      },
+      {
+        statement: "If all edge weights in a graph are distinct, the MST is unique.",
+        answer: true,
+        explanation: "With distinct edge weights, the cut property uniquely determines which edge to add at each step, resulting in a unique MST."
+      },
+      {
+        statement: "Prim's algorithm can start from any vertex and will produce the same MST if edge weights are distinct.",
+        answer: true,
+        explanation: "With distinct weights, the MST is unique. Prim's algorithm will find this unique MST regardless of the starting vertex."
+      },
+
+      // Greedy & Huffman
+      {
+        statement: "Any fixed-length code is prefix-free.",
+        answer: true,
+        explanation: "In a fixed-length code, all codewords have the same length, so no codeword can be a prefix of another."
+      },
+      {
+        statement: "Huffman coding produces an optimal prefix-free code.",
+        answer: true,
+        explanation: "Huffman's greedy algorithm produces a prefix-free code with minimum expected length for the given symbol frequencies."
+      },
+      {
+        statement: "A greedy algorithm always produces an optimal solution.",
+        answer: false,
+        explanation: "Greedy algorithms only work for problems with the greedy-choice property and optimal substructure. Many problems (like 0/1 knapsack) require DP."
+      },
+
+      // Network Flow
+      {
+        statement: "The max-flow min-cut theorem states that the maximum flow equals the minimum cut capacity.",
+        answer: true,
+        explanation: "This fundamental theorem shows that the value of a maximum $s$-$t$ flow equals the capacity of a minimum $s$-$t$ cut."
+      },
+      {
+        statement: "Ford-Fulkerson always terminates with integer capacities.",
+        answer: true,
+        explanation: "With integer capacities, each augmentation increases the flow by at least 1, so the algorithm terminates in at most $|f^*|$ iterations."
+      },
+      {
+        statement: "Edmonds-Karp algorithm runs in $O(VE^2)$ time.",
+        answer: true,
+        explanation: "Edmonds-Karp uses BFS to find shortest augmenting paths, guaranteeing $O(VE)$ augmentations, each taking $O(E)$ time."
+      },
+
+      // Dynamic Programming
+      {
+        statement: "Dynamic programming is applicable when a problem has optimal substructure and overlapping subproblems.",
+        answer: true,
+        explanation: "These are the two key properties that make DP effective: optimal solutions contain optimal sub-solutions, and the same subproblems recur."
+      },
+      {
+        statement: "Memoization and tabulation produce the same results.",
+        answer: true,
+        explanation: "Both are methods to avoid recomputing subproblems. Memoization is top-down with caching; tabulation is bottom-up with a table."
+      },
+      {
+        statement: "The LCS (Longest Common Subsequence) problem can be solved in $O(mn)$ time where $m$ and $n$ are the lengths of the two sequences.",
+        answer: true,
+        explanation: "The standard DP solution fills an $m \\times n$ table, with each cell computed in $O(1)$ time."
+      },
+
+      // Topological Sort
+      {
+        statement: "A topological ordering exists if and only if the graph is a DAG.",
+        answer: true,
+        explanation: "A directed graph has a topological order iff it has no directed cycles. DFS or Kahn's algorithm can find this ordering."
+      },
+      {
+        statement: "Running DFS and ordering vertices by decreasing finish time gives a topological sort.",
+        answer: true,
+        explanation: "In a DAG, if $(u,v)$ is an edge, DFS finishes $v$ before $u$. So decreasing finish time order respects all edges."
+      },
+
+      // SCCs
+      {
+        statement: "The component graph (DAG of SCCs) of any directed graph is always a DAG.",
+        answer: true,
+        explanation: "If there were a cycle among SCCs, all vertices in those SCCs would be mutually reachable, contradicting that they are separate SCCs."
+      },
+      {
+        statement: "Kosaraju's algorithm finds all strongly connected components in $O(V + E)$ time.",
+        answer: true,
+        explanation: "Kosaraju's runs two DFS traversals, each taking $O(V + E)$ time, for a total of $O(V + E)$."
+      },
+
+      // Edge Classification
+      {
+        statement: "In DFS of a directed graph, a back edge indicates a cycle.",
+        answer: true,
+        explanation: "A back edge goes from a vertex to an ancestor in the DFS tree, creating a cycle with the tree path."
+      },
+      {
+        statement: "In an undirected graph DFS, all non-tree edges are back edges.",
+        answer: true,
+        explanation: "In undirected graphs, when we encounter an already-visited neighbor, it must be an ancestor (back edge). Forward and cross edges don't exist."
+      },
+
+      // RAM Model
+      {
+        statement: "In the RAM (Random Access Machine) model, each basic operation takes $O(1)$ time.",
+        answer: true,
+        explanation: "The RAM model assumes constant-time arithmetic operations, comparisons, and memory access for analysis purposes."
+      },
+      {
+        statement: "The RAM model allows parallel computation.",
+        answer: false,
+        explanation: "The basic RAM model assumes a single processor executing instructions sequentially. Parallel models (like PRAM) are extensions."
+      }
+    ];
+
+    // Select a random question
+    const q = sample(questions);
+    const correctAnswer = q.answer ? "True" : "False";
+
+    return {
+      prompt: `True or False: ${q.statement}`,
+      answer: [correctAnswer.toLowerCase(), correctAnswer],
+      check: (user) => {
+        const u = normalize(user);
+        if (q.answer) {
+          return u === "true" || u === "t" || u === "yes" || u === "1";
+        } else {
+          return u === "false" || u === "f" || u === "no" || u === "0";
+        }
+      },
+      solution: `**${correctAnswer}**\n\n${q.explanation}`
+    };
+  }
+
+  // ===== Conceptual Short Answer Generator =====
+  function genConceptual() {
+    const questions = [
+      // RAM Model
+      {
+        prompt: "Briefly explain the Random Access Model (RAM). Name at least two key assumptions.",
+        acceptableKeywords: ["single processor", "no parallel", "O(1)", "constant time", "basic operation", "random access", "memory"],
+        minKeywords: 2,
+        answer: "Single processor, O(1) basic operations, random memory access",
+        solution: `The RAM (Random Access Machine) model has three key assumptions:
+
+1. **Single processor** - No parallel computing; instructions execute sequentially.
+2. **O(1) basic operations** - Each basic operation (arithmetic, comparison, assignment) takes constant time.
+3. **Simple memory structure** - Random memory access in O(1) time (can access any memory location directly).
+
+For full credit, explain at least two of these three correctly.`
+      },
+      // Optimality of Subpaths
+      {
+        prompt: "Explain the 'optimality of subpaths' lemma used in shortest path algorithms.",
+        acceptableKeywords: ["subpath", "shortest path", "optimal", "between", "endpoints"],
+        minKeywords: 2,
+        answer: "Any subpath of a shortest path is also a shortest path",
+        solution: `**Optimality of Subpaths Lemma:**
+
+Any subpath of a shortest path must be a shortest path between the two ending points of the subpath.
+
+**Proof idea:** If there were a shorter subpath, we could substitute it to get a shorter overall path, contradicting that we started with a shortest path.
+
+**Example:** If $s \\to a \\to b \\to c \\to t$ is a shortest path from $s$ to $t$, then $a \\to b \\to c$ must be a shortest path from $a$ to $c$.`
+      },
+      // Triangle Inequality
+      {
+        prompt: "Explain why $\\delta(s, v) \\le \\delta(s, u) + w(u, v)$ for any edge $(u, v)$.",
+        acceptableKeywords: ["path", "edge", "distance", "shorter", "at most", "followed by"],
+        minKeywords: 2,
+        answer: "Path to u followed by edge (u,v) is a valid path to v",
+        solution: `**Triangle Inequality for Shortest Paths:**
+
+$\\delta(s, v) \\le \\delta(s, u) + w(u, v)$ for any edge $(u, v)$.
+
+**Explanation:** Any path from $s$ to $u$ followed by the edge $(u, v)$ forms a valid path from $s$ to $v$.
+
+Therefore, the shortest distance from $s$ to $v$ is at most the shortest distance from $s$ to $u$ plus the weight $w(u, v)$.
+
+This is the basis for the **relaxation** operation in Dijkstra and Bellman-Ford.`
+      },
+      // Radix Sort for Vectors
+      {
+        prompt: "Suppose we want to sort vectors $v_i = \\langle v_i(5), v_i(4), v_i(3), v_i(2), v_i(1) \\rangle$ in $O(n)$ time, where each entry is an integer between 0 and 1000. Explain how.",
+        acceptableKeywords: ["radix", "counting sort", "stable", "digit", "right to left", "least significant"],
+        minKeywords: 1,
+        answer: "Radix sort (or counting sort on each position from right to left)",
+        solution: `**Solution: Radix Sort**
+
+Use **Radix Sort** with each vector position as a "digit":
+
+1. Start with the rightmost position $v_i(1)$ (least significant).
+2. Apply **Counting Sort** (stable!) on position $v_i(1)$.
+3. Then sort by $v_i(2)$, then $v_i(3)$, ..., finally $v_i(5)$.
+
+**Why it works:**
+- Counting sort is $O(n + k)$ where $k = 1000$.
+- We do this 5 times (constant), so total is $O(5(n + 1000)) = O(n)$.
+- Stability ensures earlier sorts are preserved.`
+      },
+      // Why Prim is Correct
+      {
+        prompt: "Explain why Prim's algorithm correctly finds a Minimum Spanning Tree. Assume distinct edge weights.",
+        acceptableKeywords: ["safe edge", "cheapest", "cut", "tree", "crossing"],
+        minKeywords: 2,
+        answer: "Each edge added is the cheapest crossing the cut, making it safe",
+        solution: `**Why Prim's Algorithm is Correct:**
+
+Let $T$ denote the current tree being built.
+
+At each step, Prim's adds the **cheapest edge** between $T$'s vertices and the remaining vertices.
+
+This edge crosses the **cut** $(T, V - T)$ and is the minimum-weight edge crossing that cut.
+
+By the **Cut Property**, the lightest edge crossing any cut is a **safe edge** — it must be in some MST.
+
+Since we only add safe edges and eventually connect all vertices, we get an MST.`
+      },
+      // Safe Edge Proof
+      {
+        prompt: "Prove that a safe edge (the minimum weight edge crossing a cut) must be in every MST, assuming distinct edge weights.",
+        acceptableKeywords: ["cycle", "replace", "path", "contradiction", "cost", "decrease", "unique"],
+        minKeywords: 2,
+        answer: "Adding the safe edge creates a cycle; swapping it with another crossing edge reduces cost",
+        solution: `**Proof by Contradiction:**
+
+Suppose there is an MST $T$ that doesn't include a safe edge $(u, v)$ for some cut $(S, V-S)$.
+
+1. Since $T$ is connected, there is a unique path $P$ between $u$ and $v$ in $T$.
+
+2. $P \\cup \\{(u,v)\\}$ forms a **cycle**.
+
+3. Since $u \\in S$ and $v \\in V-S$, path $P$ must cross the cut somewhere via another edge $(x, y)$.
+
+4. **Replace** $(x, y)$ with $(u, v)$: The result is still connected (still a spanning tree).
+
+5. Since $(u, v)$ is the **cheapest** edge crossing the cut: $w(u,v) < w(x,y)$.
+
+6. The new tree has **lower cost** — contradiction!
+
+Therefore, every MST must include all safe edges.`
+      },
+      // Describe Dijkstra
+      {
+        prompt: "Describe Dijkstra's algorithm. For full points, include the data structure used.",
+        acceptableKeywords: ["priority queue", "min-heap", "extract-min", "relax", "decrease-key", "infinity", "distance"],
+        minKeywords: 3,
+        answer: "Use min-priority queue; repeatedly extract-min and relax outgoing edges",
+        solution: `**Dijkstra's Algorithm:**
+
+1. **Initialize:** Set $v.d = \\infty$ for all vertices; set $s.d = 0$.
+
+2. **Data Structure:** Add all vertices to a **minimum priority queue** using $v.d$ as the key.
+
+3. **Main Loop:** While queue is not empty:
+   - **Extract-Min:** Remove vertex $u$ with minimum $d$ value.
+   - **Relax** all edges $(u, v)$ leaving $u$:
+     - If $u.d + w(u,v) < v.d$, update $v.d$ and use **Decrease-Key** operation.
+
+4. When done, $v.d$ contains the shortest distance from $s$ to $v$.
+
+**Time Complexity:** $O((V + E) \\log V)$ with a binary heap.`
+      },
+      // Describe Bellman-Ford
+      {
+        prompt: "Describe the Bellman-Ford algorithm. Include how it detects negative-weight cycles.",
+        acceptableKeywords: ["relax", "V-1", "times", "negative cycle", "update", "pass", "edges"],
+        minKeywords: 3,
+        answer: "Relax all edges V-1 times; if any edge can still be relaxed, there's a negative cycle",
+        solution: `**Bellman-Ford Algorithm:**
+
+1. **Initialize:** Set $v.d = \\infty$ for all vertices; set $s.d = 0$.
+
+2. **Main Loop:** Repeat $|V| - 1$ times:
+   - For each edge $(u, v) \\in E$: **Relax** the edge.
+   - (If $u.d + w(u,v) < v.d$, set $v.d = u.d + w(u,v)$)
+
+3. **Negative Cycle Detection:** Try to relax all edges one more time.
+   - If any $v.d$ is updated, return **False** (negative cycle exists).
+   - Otherwise return **True** (distances are correct).
+
+**Why $|V| - 1$ iterations?** Any shortest path has at most $|V| - 1$ edges. Each iteration ensures at least one more edge of every shortest path is correctly computed.`
+      },
+      // Find Min-Cut
+      {
+        prompt: "Explain how to find an $s$-$t$ minimum cut after computing a maximum flow.",
+        acceptableKeywords: ["residual", "reachable", "BFS", "DFS", "capacity", "S", "T", "partition"],
+        minKeywords: 2,
+        answer: "S = vertices reachable from s in residual graph; T = the rest",
+        solution: `**Finding the Minimum Cut:**
+
+After computing a max flow $f$:
+
+1. Build the **residual graph** $G_f$ (edges with remaining capacity > 0).
+
+2. Run **BFS/DFS from $s$** in $G_f$ to find all vertices reachable from $s$.
+
+3. Let $S$ = vertices reachable from $s$ in $G_f$.
+   Let $T$ = all other vertices (including $t$).
+
+4. Return the cut $(S, T)$.
+
+**Why it works:** Since $t$ is not reachable from $s$ in $G_f$ (no augmenting path exists), every edge crossing from $S$ to $T$ is fully saturated. The capacity of this cut equals the max flow value.`
+      },
+      // Bipartite Matching via Max Flow
+      {
+        prompt: "Explain how to solve Maximum Bipartite Matching using the max flow algorithm.",
+        acceptableKeywords: ["source", "sink", "capacity 1", "L", "R", "orient", "edges", "flow"],
+        minKeywords: 3,
+        answer: "Add source to L, sink to R, capacity 1 on all edges, find max flow",
+        solution: `**Maximum Bipartite Matching via Max Flow:**
+
+Given bipartite graph $G = (L \\cup R, E)$:
+
+1. **Create source $s$:** Connect $s$ to every vertex in $L$ with capacity 1.
+
+2. **Create sink $t$:** Connect every vertex in $R$ to $t$ with capacity 1.
+
+3. **Orient edges:** Direct all edges from $L$ to $R$ with capacity 1.
+
+4. **Run max flow** algorithm (e.g., Ford-Fulkerson / Edmonds-Karp).
+
+5. **Extract matching:** Edges between $L$ and $R$ with non-zero flow form the maximum matching.
+
+**Why it works:** Capacity 1 ensures each vertex is matched at most once. Max flow maximizes the number of matched pairs.`
+      },
+      // Topological Sort Correctness
+      {
+        prompt: "The topological sort algorithm runs DFS and orders vertices by decreasing finish time. Prove: for every edge $(u, v)$, we have $u.f > v.f$.",
+        acceptableKeywords: ["back edge", "DAG", "tree", "forward", "cross", "gray", "white", "black", "parenthesis"],
+        minKeywords: 2,
+        answer: "No back edges in DAG; tree/forward edges have u.f > v.f; cross edges also have u.f > v.f",
+        solution: `**Proof of Topological Sort Correctness:**
+
+For every edge $(u, v)$ in a DAG, we need $u.f > v.f$.
+
+**Key insight:** Since the graph is a DAG, there are **no back edges** (back edges create cycles).
+
+**Case analysis by edge type:**
+
+1. **Tree or Forward edge:** $u$ is an ancestor of $v$ in the DFS tree.
+   By the Parenthesis Theorem, $[v.d, v.f] \\subset [u.d, u.f]$, so $v.f < u.f$. ✓
+
+2. **Cross edge:** When exploring $(u, v)$, $v$ is already black (finished).
+   Since $v$ finished before we finished $u$: $v.f < u.f$. ✓
+
+**Alternative proof:** When exploring $(u, v)$:
+- $v$ gray → back edge → impossible in DAG
+- $v$ white → $v$ becomes descendant → $v.f < u.f$ (parenthesis theorem)
+- $v$ black → $v$ already finished → $v.f < u.f$`
+      },
+      // DFS Edge Classification
+      {
+        prompt: "In DFS of a directed graph, what are the four types of edges? How can you identify each?",
+        acceptableKeywords: ["tree", "back", "forward", "cross", "white", "gray", "black", "ancestor", "descendant"],
+        minKeywords: 4,
+        answer: "Tree (to white), Back (to gray ancestor), Forward (to black descendant), Cross (to black non-descendant)",
+        solution: `**Four Types of DFS Edges:**
+
+When exploring edge $(u, v)$, classify by $v$'s color:
+
+1. **Tree Edge:** $v$ is **white** (unvisited)
+   - $v$ becomes a child of $u$ in the DFS tree
+
+2. **Back Edge:** $v$ is **gray** (in the recursion stack)
+   - $v$ is an ancestor of $u$
+   - **Indicates a cycle!**
+
+3. **Forward Edge:** $v$ is **black** AND $v$ is a descendant of $u$
+   - We finished $v$ before finishing $u$
+   - $u.d < v.d < v.f < u.f$
+
+4. **Cross Edge:** $v$ is **black** AND $v$ is NOT a descendant of $u$
+   - Edge goes to a different subtree or earlier-finished branch
+   - $v.f < u.d$
+
+**In undirected graphs:** Only tree and back edges exist.`
+      },
+      // SCC Algorithm
+      {
+        prompt: "Describe Kosaraju's algorithm for finding strongly connected components.",
+        acceptableKeywords: ["DFS", "transpose", "reverse", "finish time", "decreasing", "component", "two"],
+        minKeywords: 3,
+        answer: "Run DFS for finish times; run DFS on transpose in decreasing finish order",
+        solution: `**Kosaraju's Algorithm for SCCs:**
+
+1. **First DFS on $G$:**
+   - Run DFS on the original graph $G$.
+   - Record vertices by decreasing finish time (or push to stack when finished).
+
+2. **Compute $G^T$:**
+   - Create the transpose graph (reverse all edges).
+
+3. **Second DFS on $G^T$:**
+   - Process vertices in decreasing finish time order (from step 1).
+   - Each DFS tree in this pass is one SCC.
+
+**Time Complexity:** $O(V + E)$ — two DFS passes.
+
+**Why it works:** The first DFS orders components so that in $G^T$, we process "sink" SCCs first. Each DFS in step 3 can only reach vertices in the same SCC.`
+      },
+      // LCS Recurrence
+      {
+        prompt: "Write the recurrence for the LCS (Longest Common Subsequence) dynamic programming solution.",
+        acceptableKeywords: ["match", "max", "i-1", "j-1", "c[i][j]", "equal", "not equal"],
+        minKeywords: 2,
+        answer: "c[i,j] = c[i-1,j-1]+1 if match, else max(c[i-1,j], c[i,j-1])",
+        solution: `**LCS Recurrence:**
+
+Let $c[i, j]$ = length of LCS of $X[1..i]$ and $Y[1..j]$.
+
+**Base cases:**
+$$c[0, j] = 0 \\text{ for all } j$$
+$$c[i, 0] = 0 \\text{ for all } i$$
+
+**Recurrence:**
+$$c[i, j] = \\begin{cases} 
+c[i-1, j-1] + 1 & \\text{if } x_i = y_j \\\\
+\\max(c[i-1, j], c[i, j-1]) & \\text{if } x_i \\neq y_j
+\\end{cases}$$
+
+**Intuition:**
+- If characters match: extend LCS of prefixes by 1.
+- If not: take the better of excluding $x_i$ or excluding $y_j$.
+
+**Time:** $O(mn)$ where $m = |X|$, $n = |Y|$.`
+      },
+      // Unit Weight Shortest Path
+      {
+        prompt: "If all edge weights are 1 in a directed graph, what is the fastest algorithm to find shortest paths from $s$? What is the running time?",
+        acceptableKeywords: ["BFS", "O(V+E)", "queue", "unweighted", "level"],
+        minKeywords: 2,
+        answer: "BFS in O(V + E) time",
+        solution: `**Solution: Breadth-First Search (BFS)**
+
+When all edge weights are 1 (unweighted graph), use **BFS** starting from $s$.
+
+**Running Time:** $O(V + E)$
+
+**Why BFS works:**
+- BFS explores vertices level by level (by number of edges from source).
+- With unit weights, the number of edges = path weight.
+- So BFS naturally finds shortest paths.
+
+**Compare to Dijkstra:** Dijkstra is $O((V+E) \\log V)$, which is slower. BFS is optimal for unweighted graphs.`
+      }
+    ];
+
+    // Select a random question
+    const q = sample(questions);
+
+    return {
+      prompt: q.prompt,
+      answer: [q.answer],
+      check: (user) => {
+        // Check if user's answer contains enough key concepts
+        const u = normalize(user);
+        let matchCount = 0;
+        for (const kw of q.acceptableKeywords) {
+          if (u.includes(normalize(kw))) {
+            matchCount++;
+          }
+        }
+        return matchCount >= q.minKeywords;
+      },
+      solution: q.solution
+    };
+  }
+
   const GENERATORS = {
     asymptotic: genAsymptotic,
     recurrences: genRecurrences,
@@ -1957,6 +3594,8 @@ ${formatMatrix(expected)}.`,
     matrixchain: genMatrixChain,
     greedy: genGreedy,
     flow: genFlow,
+    examprep: genExamPrep,
+    conceptual: genConceptual,
   };
 
   window.GENERATORS = GENERATORS;

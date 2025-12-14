@@ -28,6 +28,11 @@
       title: "Advanced Design Paradigms",
       topics: ["dp", "matrixchain", "greedy", "flow"],
     },
+    {
+      id: "part6",
+      title: "Exam Preparation",
+      topics: ["examprep", "conceptual"],
+    },
   ];
 
   const TOPICS = {
@@ -283,6 +288,48 @@
           "Max-Flow Min-Cut theorem: value of max flow equals capacity of min s-t cut.",
       ],
       generator: "flow",
+    },
+    examprep: {
+      id: "examprep",
+      title: "Exam True/False Review",
+      part: "part6",
+      keyPoints: [
+          "Insertion sort: O(n²) worst/average, O(n) best (already sorted), stable, in-place.",
+          "HeapSort: O(n log n) always, in-place, NOT stable. Build-Heap is O(n).",
+          "MergeSort: O(n log n) always, stable, NOT in-place (needs O(n) space).",
+          "QuickSort: O(n log n) expected, O(n²) worst, in-place, NOT stable.",
+          "Comparison sorts require Ω(n log n) comparisons (decision tree lower bound).",
+          "Counting/Radix sort can achieve O(n) for integers in bounded range.",
+          "Dijkstra: O((V+E) log V) with heap, requires non-negative weights.",
+          "Bellman-Ford: O(VE), handles negative weights, detects negative cycles.",
+          "BFS: O(V+E), uses queue, shortest paths in unweighted graphs.",
+          "DFS: O(V+E), uses stack/recursion, detects cycles via back edges.",
+          "MST: Kruskal O(E log E), Prim O((V+E) log V), unique if distinct weights.",
+          "Max-flow = Min-cut (Ford-Fulkerson theorem).",
+          "Master Theorem: compare a vs b^d to determine which term dominates.",
+          "RAM model: single processor, O(1) basic operations, random memory access.",
+      ],
+      generator: "examprep",
+    },
+    conceptual: {
+      id: "conceptual",
+      title: "Conceptual Short Answer",
+      part: "part6",
+      keyPoints: [
+          "RAM Model: single processor, O(1) basic ops, random memory access.",
+          "Optimality of subpaths: any subpath of a shortest path is also shortest.",
+          "Triangle inequality: δ(s,v) ≤ δ(s,u) + w(u,v) for any edge (u,v).",
+          "Dijkstra: min-priority queue, extract-min, relax edges, decrease-key.",
+          "Bellman-Ford: relax all edges |V|-1 times; one more pass detects negative cycles.",
+          "Prim correctness: each edge added is the cheapest crossing the current cut.",
+          "Safe edge proof: adding creates cycle, swap reduces cost → contradiction.",
+          "Min-cut: S = vertices reachable from s in residual graph, T = rest.",
+          "Bipartite matching: source→L, R→sink, capacity 1, find max flow.",
+          "Topo sort proof: no back edges in DAG; tree/forward/cross all have u.f > v.f.",
+          "LCS recurrence: match→c[i-1,j-1]+1, else max(c[i-1,j], c[i,j-1]).",
+          "Kosaraju: DFS for finish times, DFS on transpose in decreasing order.",
+      ],
+      generator: "conceptual",
     },
   };
 
