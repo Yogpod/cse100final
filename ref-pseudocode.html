@@ -1,0 +1,404 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pseudocode Reference - CSE100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .ref-container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+    .ref-header { text-align: center; margin-bottom: 48px; }
+    .ref-header h1 { font-size: 36px; margin-bottom: 12px; }
+    .ref-header p { color: var(--muted); max-width: 600px; margin: 0 auto; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: var(--accent-2); text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+    .algo-section { margin-bottom: 48px; }
+    .algo-section h2 { 
+      margin: 0 0 16px; 
+      padding-bottom: 8px; 
+      border-bottom: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .algo-section h2 .complexity { 
+      font-size: 14px; 
+      font-weight: normal; 
+      color: var(--muted);
+      background: rgba(124, 58, 237, 0.15);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .code-block {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .code-block .keyword { color: #c792ea; }
+    .code-block .func { color: #82aaff; }
+    .code-block .comment { color: #676e95; font-style: italic; }
+    .code-block .var { color: #f78c6c; }
+    .code-block .num { color: #f78c6c; }
+    .algo-note {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: rgba(124, 58, 237, 0.1);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop"></div>
+  
+  <div class="ref-container">
+    <a href="index.html" class="back-link"> Back to Home</a>
+    
+    <div class="ref-header">
+      <h1>Pseudocode Reference</h1>
+      <p>Standard pseudocode for all major algorithms covered in CSE100.</p>
+    </div>
+
+    <div class="algo-section">
+      <h2>Insertion Sort <span class="complexity">O(n) / O(1) space</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">InsertionSort</span>(A[1..n]):
+    <span class="keyword">for</span> i = 2 <span class="keyword">to</span> n:
+        key = A[i]
+        j = i - 1
+        <span class="keyword">while</span> j > 0 <span class="keyword">and</span> A[j] > key:
+            A[j + 1] = A[j]
+            j = j - 1
+        A[j + 1] = key</div>
+      <div class="algo-note"><strong>Loop Invariant:</strong> At the start of each iteration, A[1..i-1] contains the original elements in sorted order.</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Merge Sort <span class="complexity">O(n log n) / O(n) space</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">MergeSort</span>(A, lo, hi):
+    <span class="keyword">if</span> lo < hi:
+        mid = floor((lo + hi) / 2)
+        <span class="func">MergeSort</span>(A, lo, mid)
+        <span class="func">MergeSort</span>(A, mid + 1, hi)
+        <span class="func">Merge</span>(A, lo, mid, hi)
+
+<span class="keyword">procedure</span> <span class="func">Merge</span>(A, lo, mid, hi):
+    L = A[lo..mid]      <span class="comment">// copy left half</span>
+    R = A[mid+1..hi]    <span class="comment">// copy right half</span>
+    i = 1, j = 1, k = lo
+    <span class="keyword">while</span> i <= |L| <span class="keyword">and</span> j <= |R|:
+        <span class="keyword">if</span> L[i] <= R[j]:
+            A[k] = L[i]; i++
+        <span class="keyword">else</span>:
+            A[k] = R[j]; j++
+        k++
+    <span class="comment">// copy remaining elements</span>
+    <span class="keyword">while</span> i <= |L|: A[k++] = L[i++]
+    <span class="keyword">while</span> j <= |R|: A[k++] = R[j++]</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>QuickSort <span class="complexity">O(n log n) avg / O(n) worst</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">QuickSort</span>(A, lo, hi):
+    <span class="keyword">if</span> lo < hi:
+        p = <span class="func">Partition</span>(A, lo, hi)
+        <span class="func">QuickSort</span>(A, lo, p - 1)
+        <span class="func">QuickSort</span>(A, p + 1, hi)
+
+<span class="keyword">procedure</span> <span class="func">Partition</span>(A, lo, hi):
+    pivot = A[hi]       <span class="comment">// or use random/median-of-3</span>
+    i = lo - 1
+    <span class="keyword">for</span> j = lo <span class="keyword">to</span> hi - 1:
+        <span class="keyword">if</span> A[j] <= pivot:
+            i++
+            <span class="func">swap</span>(A[i], A[j])
+    <span class="func">swap</span>(A[i + 1], A[hi])
+    <span class="keyword">return</span> i + 1</div>
+      <div class="algo-note"><strong>Partition Invariant:</strong> Elements A[lo..i]  pivot, elements A[i+1..j-1] > pivot.</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>HeapSort <span class="complexity">O(n log n) / O(1) space</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">HeapSort</span>(A[1..n]):
+    <span class="func">BuildMaxHeap</span>(A)
+    <span class="keyword">for</span> i = n <span class="keyword">downto</span> 2:
+        <span class="func">swap</span>(A[1], A[i])
+        heapSize--
+        <span class="func">MaxHeapify</span>(A, 1)
+
+<span class="keyword">procedure</span> <span class="func">BuildMaxHeap</span>(A):
+    heapSize = n
+    <span class="keyword">for</span> i = floor(n/2) <span class="keyword">downto</span> 1:
+        <span class="func">MaxHeapify</span>(A, i)
+
+<span class="keyword">procedure</span> <span class="func">MaxHeapify</span>(A, i):
+    l = 2i; r = 2i + 1
+    largest = i
+    <span class="keyword">if</span> l <= heapSize <span class="keyword">and</span> A[l] > A[largest]:
+        largest = l
+    <span class="keyword">if</span> r <= heapSize <span class="keyword">and</span> A[r] > A[largest]:
+        largest = r
+    <span class="keyword">if</span> largest != i:
+        <span class="func">swap</span>(A[i], A[largest])
+        <span class="func">MaxHeapify</span>(A, largest)</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Counting Sort <span class="complexity">O(n + k) / O(n + k) space</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">CountingSort</span>(A[1..n], k):
+    <span class="comment">// k = maximum value in A</span>
+    C[0..k] = 0         <span class="comment">// count array</span>
+    B[1..n]             <span class="comment">// output array</span>
+    
+    <span class="keyword">for</span> j = 1 <span class="keyword">to</span> n:
+        C[A[j]]++       <span class="comment">// count occurrences</span>
+    
+    <span class="keyword">for</span> i = 1 <span class="keyword">to</span> k:
+        C[i] = C[i] + C[i-1]  <span class="comment">// cumulative count</span>
+    
+    <span class="keyword">for</span> j = n <span class="keyword">downto</span> 1:  <span class="comment">// iterate backwards for stability</span>
+        B[C[A[j]]] = A[j]
+        C[A[j]]--
+    
+    <span class="keyword">return</span> B</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Radix Sort (LSD) <span class="complexity">O(d(n + k))</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">RadixSort</span>(A[1..n], d):
+    <span class="comment">// d = number of digits, k = base (e.g., 10)</span>
+    <span class="keyword">for</span> i = 1 <span class="keyword">to</span> d:  <span class="comment">// from least to most significant</span>
+        <span class="func">StableSort</span>(A) on digit i  <span class="comment">// use counting sort</span></div>
+      <div class="algo-note"><strong>Key insight:</strong> Must use a stable sort as the subroutine, otherwise earlier digit orderings are destroyed.</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>QuickSelect (k-th smallest) <span class="complexity">O(n) avg / O(n) worst</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">QuickSelect</span>(A, lo, hi, k):
+    <span class="keyword">if</span> lo == hi:
+        <span class="keyword">return</span> A[lo]
+    
+    p = <span class="func">Partition</span>(A, lo, hi)
+    rank = p - lo + 1
+    
+    <span class="keyword">if</span> k == rank:
+        <span class="keyword">return</span> A[p]
+    <span class="keyword">else if</span> k < rank:
+        <span class="keyword">return</span> <span class="func">QuickSelect</span>(A, lo, p - 1, k)
+    <span class="keyword">else</span>:
+        <span class="keyword">return</span> <span class="func">QuickSelect</span>(A, p + 1, hi, k - rank)</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>BFS (Breadth-First Search) <span class="complexity">O(V + E)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">BFS</span>(G, s):
+    <span class="keyword">for</span> each vertex u in V:
+        color[u] = WHITE
+        dist[u] = 
+        parent[u] = NIL
+    
+    color[s] = GRAY
+    dist[s] = 0
+    Q = empty queue
+    <span class="func">Enqueue</span>(Q, s)
+    
+    <span class="keyword">while</span> Q is not empty:
+        u = <span class="func">Dequeue</span>(Q)
+        <span class="keyword">for</span> each v in Adj[u]:
+            <span class="keyword">if</span> color[v] == WHITE:
+                color[v] = GRAY
+                dist[v] = dist[u] + 1
+                parent[v] = u
+                <span class="func">Enqueue</span>(Q, v)
+        color[u] = BLACK</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>DFS (Depth-First Search) <span class="complexity">O(V + E)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">DFS</span>(G):
+    <span class="keyword">for</span> each vertex u in V:
+        color[u] = WHITE
+        parent[u] = NIL
+    time = 0
+    <span class="keyword">for</span> each vertex u in V:
+        <span class="keyword">if</span> color[u] == WHITE:
+            <span class="func">DFS-Visit</span>(G, u)
+
+<span class="keyword">procedure</span> <span class="func">DFS-Visit</span>(G, u):
+    time++
+    d[u] = time         <span class="comment">// discovery time</span>
+    color[u] = GRAY
+    <span class="keyword">for</span> each v in Adj[u]:
+        <span class="keyword">if</span> color[v] == WHITE:
+            parent[v] = u
+            <span class="func">DFS-Visit</span>(G, v)
+    color[u] = BLACK
+    time++
+    f[u] = time         <span class="comment">// finish time</span></div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Topological Sort (DFS) <span class="complexity">O(V + E)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">TopologicalSort</span>(G):
+    call <span class="func">DFS</span>(G) to compute f[v] for all v
+    as each vertex finishes, prepend to linked list
+    <span class="keyword">return</span> linked list   <span class="comment">// vertices in decreasing finish time</span></div>
+      <div class="algo-note">Alternative: Kahn's algorithm uses in-degree counting and a queue.</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Dijkstra's Algorithm <span class="complexity">O((V + E) log V) with binary heap</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">Dijkstra</span>(G, w, s):
+    <span class="keyword">for</span> each vertex v in V:
+        dist[v] = 
+        parent[v] = NIL
+    dist[s] = 0
+    Q = priority queue with all vertices (keyed by dist)
+    
+    <span class="keyword">while</span> Q is not empty:
+        u = <span class="func">ExtractMin</span>(Q)
+        <span class="keyword">for</span> each v in Adj[u]:
+            <span class="keyword">if</span> dist[u] + w(u,v) < dist[v]:
+                dist[v] = dist[u] + w(u,v)
+                parent[v] = u
+                <span class="func">DecreaseKey</span>(Q, v, dist[v])</div>
+      <div class="algo-note"><strong>Requirement:</strong> All edge weights must be non-negative.</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Bellman-Ford <span class="complexity">O(VE)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">BellmanFord</span>(G, w, s):
+    <span class="keyword">for</span> each vertex v in V:
+        dist[v] = 
+    dist[s] = 0
+    
+    <span class="keyword">for</span> i = 1 <span class="keyword">to</span> |V| - 1:
+        <span class="keyword">for</span> each edge (u, v) in E:
+            <span class="keyword">if</span> dist[u] + w(u,v) < dist[v]:
+                dist[v] = dist[u] + w(u,v)
+    
+    <span class="comment">// Check for negative-weight cycles</span>
+    <span class="keyword">for</span> each edge (u, v) in E:
+        <span class="keyword">if</span> dist[u] + w(u,v) < dist[v]:
+            <span class="keyword">return</span> "negative cycle exists"
+    <span class="keyword">return</span> dist</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Prim's MST <span class="complexity">O((V + E) log V) with binary heap</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">Prim</span>(G, w, r):
+    <span class="keyword">for</span> each u in V:
+        key[u] = 
+        parent[u] = NIL
+    key[r] = 0
+    Q = priority queue with all vertices
+    
+    <span class="keyword">while</span> Q is not empty:
+        u = <span class="func">ExtractMin</span>(Q)
+        <span class="keyword">for</span> each v in Adj[u]:
+            <span class="keyword">if</span> v in Q <span class="keyword">and</span> w(u,v) < key[v]:
+                parent[v] = u
+                key[v] = w(u,v)
+                <span class="func">DecreaseKey</span>(Q, v, key[v])</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Kruskal's MST <span class="complexity">O(E log E)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">Kruskal</span>(G, w):
+    A = empty set     <span class="comment">// MST edges</span>
+    <span class="keyword">for</span> each vertex v in V:
+        <span class="func">MakeSet</span>(v)
+    
+    sort edges E by weight w in non-decreasing order
+    
+    <span class="keyword">for</span> each edge (u, v) in sorted E:
+        <span class="keyword">if</span> <span class="func">Find</span>(u) != <span class="func">Find</span>(v):
+            A = A  {(u, v)}
+            <span class="func">Union</span>(u, v)
+    <span class="keyword">return</span> A</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Ford-Fulkerson (Max Flow) <span class="complexity">O(E  max_flow)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">FordFulkerson</span>(G, s, t):
+    <span class="keyword">for</span> each edge (u, v) in E:
+        f[u,v] = 0
+    
+    <span class="keyword">while</span> exists augmenting path p from s to t in residual graph:
+        cf = min{cf(u,v) : (u,v) on p}  <span class="comment">// bottleneck capacity</span>
+        <span class="keyword">for</span> each edge (u, v) on p:
+            f[u,v] = f[u,v] + cf
+            f[v,u] = f[v,u] - cf
+    
+    <span class="keyword">return</span> sum of f[s,v] for v in Adj[s]</div>
+      <div class="algo-note"><strong>Edmonds-Karp:</strong> Use BFS to find shortest augmenting path  O(VE)</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>LCS (Dynamic Programming) <span class="complexity">O(mn)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">LCS</span>(X[1..m], Y[1..n]):
+    <span class="comment">// dp[i][j] = length of LCS of X[1..i] and Y[1..j]</span>
+    <span class="keyword">for</span> i = 0 <span class="keyword">to</span> m: dp[i][0] = 0
+    <span class="keyword">for</span> j = 0 <span class="keyword">to</span> n: dp[0][j] = 0
+    
+    <span class="keyword">for</span> i = 1 <span class="keyword">to</span> m:
+        <span class="keyword">for</span> j = 1 <span class="keyword">to</span> n:
+            <span class="keyword">if</span> X[i] == Y[j]:
+                dp[i][j] = dp[i-1][j-1] + 1
+            <span class="keyword">else</span>:
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+    
+    <span class="keyword">return</span> dp[m][n]</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>0/1 Knapsack <span class="complexity">O(nW)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">Knapsack</span>(W, weights[1..n], values[1..n]):
+    <span class="comment">// dp[i][w] = max value using items 1..i with capacity w</span>
+    <span class="keyword">for</span> w = 0 <span class="keyword">to</span> W: dp[0][w] = 0
+    
+    <span class="keyword">for</span> i = 1 <span class="keyword">to</span> n:
+        <span class="keyword">for</span> w = 0 <span class="keyword">to</span> W:
+            <span class="keyword">if</span> weights[i] > w:
+                dp[i][w] = dp[i-1][w]  <span class="comment">// can't take item i</span>
+            <span class="keyword">else</span>:
+                dp[i][w] = max(dp[i-1][w], 
+                              dp[i-1][w - weights[i]] + values[i])
+    
+    <span class="keyword">return</span> dp[n][W]</div>
+    </div>
+
+    <div class="algo-section">
+      <h2>Matrix Chain Multiplication <span class="complexity">O(n)</span></h2>
+      <div class="code-block"><span class="keyword">procedure</span> <span class="func">MatrixChain</span>(p[0..n]):
+    <span class="comment">// Matrix Ai has dimensions p[i-1]  p[i]</span>
+    <span class="comment">// m[i][j] = min cost to multiply Ai...Aj</span>
+    
+    <span class="keyword">for</span> i = 1 <span class="keyword">to</span> n: m[i][i] = 0
+    
+    <span class="keyword">for</span> len = 2 <span class="keyword">to</span> n:  <span class="comment">// chain length</span>
+        <span class="keyword">for</span> i = 1 <span class="keyword">to</span> n - len + 1:
+            j = i + len - 1
+            m[i][j] = 
+            <span class="keyword">for</span> k = i <span class="keyword">to</span> j - 1:
+                cost = m[i][k] + m[k+1][j] + p[i-1]*p[k]*p[j]
+                <span class="keyword">if</span> cost < m[i][j]:
+                    m[i][j] = cost
+                    s[i][j] = k   <span class="comment">// optimal split point</span>
+    
+    <span class="keyword">return</span> m[1][n]</div>
+    </div>
+
+  </div>
+</body>
+</html>

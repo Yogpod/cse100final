@@ -1,0 +1,437 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complexity Reference - CSE100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <style>
+    .ref-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .ref-table th, .ref-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .ref-table th { background: rgba(124, 58, 237, 0.15); color: var(--accent-2); font-weight: 600; }
+    .ref-table tr:hover { background: rgba(255,255,255,0.02); }
+    .ref-table code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .section-title { margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+    .section-title:first-of-type { margin-top: 0; }
+    .tag-stable { background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .tag-unstable { background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .tag-inplace { background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .ref-container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+    .ref-header { text-align: center; margin-bottom: 48px; }
+    .ref-header h1 { font-size: 36px; margin-bottom: 12px; }
+    .ref-header p { color: var(--muted); max-width: 600px; margin: 0 auto; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: var(--accent-2); text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="backdrop"></div>
+  
+  <div class="ref-container">
+    <a href="index.html" class="back-link"> Back to Home</a>
+    
+    <div class="ref-header">
+      <h1>Algorithm Complexity Reference</h1>
+      <p>Complete time and space complexity for all algorithms covered in CSE100.</p>
+    </div>
+
+    <h2 class="section-title">Sorting Algorithms</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Algorithm</th>
+          <th>Best Case</th>
+          <th>Average Case</th>
+          <th>Worst Case</th>
+          <th>Space</th>
+          <th>Properties</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Insertion Sort</strong></td>
+          <td>\O(n)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(1)\</td>
+          <td><span class="tag-stable">Stable</span> <span class="tag-inplace">In-place</span></td>
+        </tr>
+        <tr>
+          <td><strong>Selection Sort</strong></td>
+          <td>\O(n^2)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(1)\</td>
+          <td><span class="tag-unstable">Unstable</span> <span class="tag-inplace">In-place</span></td>
+        </tr>
+        <tr>
+          <td><strong>Bubble Sort</strong></td>
+          <td>\O(n)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(1)\</td>
+          <td><span class="tag-stable">Stable</span> <span class="tag-inplace">In-place</span></td>
+        </tr>
+        <tr>
+          <td><strong>Merge Sort</strong></td>
+          <td>\O(n log n)\</td>
+          <td>\O(n log n)\</td>
+          <td>\O(n log n)\</td>
+          <td>\O(n)\</td>
+          <td><span class="tag-stable">Stable</span></td>
+        </tr>
+        <tr>
+          <td><strong>QuickSort</strong></td>
+          <td>\O(n log n)\</td>
+          <td>\O(n log n)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(log n)\</td>
+          <td><span class="tag-unstable">Unstable</span> <span class="tag-inplace">In-place</span></td>
+        </tr>
+        <tr>
+          <td><strong>HeapSort</strong></td>
+          <td>\O(n log n)\</td>
+          <td>\O(n log n)\</td>
+          <td>\O(n log n)\</td>
+          <td>\O(1)\</td>
+          <td><span class="tag-unstable">Unstable</span> <span class="tag-inplace">In-place</span></td>
+        </tr>
+        <tr>
+          <td><strong>Counting Sort</strong></td>
+          <td>\O(n + k)\</td>
+          <td>\O(n + k)\</td>
+          <td>\O(n + k)\</td>
+          <td>\O(n + k)\</td>
+          <td><span class="tag-stable">Stable</span></td>
+        </tr>
+        <tr>
+          <td><strong>Radix Sort (LSD)</strong></td>
+          <td>\O(d(n + k))\</td>
+          <td>\O(d(n + k))\</td>
+          <td>\O(d(n + k))\</td>
+          <td>\O(n + k)\</td>
+          <td><span class="tag-stable">Stable</span></td>
+        </tr>
+        <tr>
+          <td><strong>Bucket Sort</strong></td>
+          <td>\O(n + k)\</td>
+          <td>\O(n + k)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(n + k)\</td>
+          <td><span class="tag-stable">Stable</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Selection Algorithms</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Algorithm</th>
+          <th>Best Case</th>
+          <th>Average Case</th>
+          <th>Worst Case</th>
+          <th>Space</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>QuickSelect</strong></td>
+          <td>\O(n)\</td>
+          <td>\O(n)\</td>
+          <td>\O(n^2)\</td>
+          <td>\O(1)\</td>
+        </tr>
+        <tr>
+          <td><strong>Median of Medians</strong></td>
+          <td>\O(n)\</td>
+          <td>\O(n)\</td>
+          <td>\O(n)\</td>
+          <td>\O(log n)\</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Heap Operations</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Operation</th>
+          <th>Time Complexity</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Insert</strong></td>
+          <td>\O(log n)\</td>
+          <td>Bubble up</td>
+        </tr>
+        <tr>
+          <td><strong>Extract-Max/Min</strong></td>
+          <td>\O(log n)\</td>
+          <td>Heapify down</td>
+        </tr>
+        <tr>
+          <td><strong>Peek</strong></td>
+          <td>\O(1)\</td>
+          <td>Return root</td>
+        </tr>
+        <tr>
+          <td><strong>Build-Heap</strong></td>
+          <td>\O(n)\</td>
+          <td>Bottom-up heapify</td>
+        </tr>
+        <tr>
+          <td><strong>Decrease-Key</strong></td>
+          <td>\O(log n)\</td>
+          <td>Bubble up after update</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Graph Algorithms</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Algorithm</th>
+          <th>Time Complexity</th>
+          <th>Space</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>BFS</strong></td>
+          <td>\O(V + E)\</td>
+          <td>\O(V)\</td>
+          <td>Queue-based, shortest path in unweighted</td>
+        </tr>
+        <tr>
+          <td><strong>DFS</strong></td>
+          <td>\O(V + E)\</td>
+          <td>\O(V)\</td>
+          <td>Stack/recursion</td>
+        </tr>
+        <tr>
+          <td><strong>Topological Sort (DFS)</strong></td>
+          <td>\O(V + E)\</td>
+          <td>\O(V)\</td>
+          <td>Reverse post-order</td>
+        </tr>
+        <tr>
+          <td><strong>Topological Sort (Kahn's)</strong></td>
+          <td>\O(V + E)\</td>
+          <td>\O(V)\</td>
+          <td>In-degree based</td>
+        </tr>
+        <tr>
+          <td><strong>Dijkstra (binary heap)</strong></td>
+          <td>\O((V + E) log V)\</td>
+          <td>\O(V)\</td>
+          <td>Non-negative weights only</td>
+        </tr>
+        <tr>
+          <td><strong>Dijkstra (Fibonacci heap)</strong></td>
+          <td>\O(E + V log V)\</td>
+          <td>\O(V)\</td>
+          <td>Theoretical improvement</td>
+        </tr>
+        <tr>
+          <td><strong>Bellman-Ford</strong></td>
+          <td>\O(VE)\</td>
+          <td>\O(V)\</td>
+          <td>Handles negative weights</td>
+        </tr>
+        <tr>
+          <td><strong>Floyd-Warshall</strong></td>
+          <td>\O(V^3)\</td>
+          <td>\O(V^2)\</td>
+          <td>All-pairs shortest paths</td>
+        </tr>
+        <tr>
+          <td><strong>Prim's MST (binary heap)</strong></td>
+          <td>\O((V + E) log V)\</td>
+          <td>\O(V)\</td>
+          <td>Dense: use adj matrix O(V^2)</td>
+        </tr>
+        <tr>
+          <td><strong>Kruskal's MST</strong></td>
+          <td>\O(E log E)\</td>
+          <td>\O(V)\</td>
+          <td>Union-Find with path compression</td>
+        </tr>
+        <tr>
+          <td><strong>Kosaraju's SCC</strong></td>
+          <td>\O(V + E)\</td>
+          <td>\O(V)\</td>
+          <td>Two DFS passes</td>
+        </tr>
+        <tr>
+          <td><strong>Tarjan's SCC</strong></td>
+          <td>\O(V + E)\</td>
+          <td>\O(V)\</td>
+          <td>Single DFS</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Dynamic Programming</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Problem</th>
+          <th>Time Complexity</th>
+          <th>Space</th>
+          <th>Recurrence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Fibonacci</strong></td>
+          <td>\O(n)\</td>
+          <td>\O(1)\ or \O(n)\</td>
+          <td>\F(n) = F(n-1) + F(n-2)\</td>
+        </tr>
+        <tr>
+          <td><strong>LCS</strong></td>
+          <td>\O(mn)\</td>
+          <td>\O(mn)\ or \O(min(m,n))\</td>
+          <td>Match: \1 + dp[i-1][j-1]\</td>
+        </tr>
+        <tr>
+          <td><strong>Edit Distance</strong></td>
+          <td>\O(mn)\</td>
+          <td>\O(mn)\</td>
+          <td>\min(ins, del, sub)\</td>
+        </tr>
+        <tr>
+          <td><strong>0/1 Knapsack</strong></td>
+          <td>\O(nW)\</td>
+          <td>\O(nW)\ or \O(W)\</td>
+          <td>\max(skip, take)\</td>
+        </tr>
+        <tr>
+          <td><strong>Unbounded Knapsack</strong></td>
+          <td>\O(nW)\</td>
+          <td>\O(W)\</td>
+          <td>\dp[w] = max over items\</td>
+        </tr>
+        <tr>
+          <td><strong>Matrix Chain</strong></td>
+          <td>\O(n^3)\</td>
+          <td>\O(n^2)\</td>
+          <td>\min over k of dp[i][k] + dp[k+1][j] + cost\</td>
+        </tr>
+        <tr>
+          <td><strong>Longest Increasing Subseq</strong></td>
+          <td>\O(n log n)\ or \O(n^2)\</td>
+          <td>\O(n)\</td>
+          <td>Binary search or DP</td>
+        </tr>
+        <tr>
+          <td><strong>Coin Change</strong></td>
+          <td>\O(nW)\</td>
+          <td>\O(W)\</td>
+          <td>\dp[w] = min(dp[w], dp[w-c] + 1)\</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Network Flow</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Algorithm</th>
+          <th>Time Complexity</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Ford-Fulkerson (DFS)</strong></td>
+          <td>\O(E * max_flow)\</td>
+          <td>Pseudo-polynomial</td>
+        </tr>
+        <tr>
+          <td><strong>Edmonds-Karp (BFS)</strong></td>
+          <td>\O(VE^2)\</td>
+          <td>Polynomial, BFS for shortest path</td>
+        </tr>
+        <tr>
+          <td><strong>Dinic's</strong></td>
+          <td>\O(V^2 E)\</td>
+          <td>Level graph + blocking flow</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Data Structure Operations</h2>
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Structure</th>
+          <th>Access</th>
+          <th>Search</th>
+          <th>Insert</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Array</strong></td>
+          <td>\O(1)\</td>
+          <td>\O(n)\</td>
+          <td>\O(n)\</td>
+          <td>\O(n)\</td>
+        </tr>
+        <tr>
+          <td><strong>Linked List</strong></td>
+          <td>\O(n)\</td>
+          <td>\O(n)\</td>
+          <td>\O(1)\</td>
+          <td>\O(1)\</td>
+        </tr>
+        <tr>
+          <td><strong>Hash Table</strong></td>
+          <td>\O(1)\ avg</td>
+          <td>\O(1)\ avg</td>
+          <td>\O(1)\ avg</td>
+          <td>\O(1)\ avg</td>
+        </tr>
+        <tr>
+          <td><strong>BST (balanced)</strong></td>
+          <td>\O(log n)\</td>
+          <td>\O(log n)\</td>
+          <td>\O(log n)\</td>
+          <td>\O(log n)\</td>
+        </tr>
+        <tr>
+          <td><strong>Union-Find</strong></td>
+          <td>-</td>
+          <td>\O(α(n))\</td>
+          <td>-</td>
+          <td>-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '\\', right: '\\', display: false}
+        ],
+        throwOnError: false
+      });
+    });
+  </script>
+</body>
+</html>

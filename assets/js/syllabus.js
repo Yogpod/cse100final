@@ -31,7 +31,7 @@
     {
       id: "part6",
       title: "Exam Preparation",
-      topics: ["examprep", "conceptual"],
+      topics: ["examprep", "conceptual", "pseudocode", "proofs", "complexities"],
     },
   ];
 
@@ -330,6 +330,53 @@
           "Kosaraju: DFS for finish times, DFS on transpose in decreasing order.",
       ],
       generator: "conceptual",
+    },
+    pseudocode: {
+      id: "pseudocode",
+      title: "Pseudocode Reading",
+      part: "part6",
+      keyPoints: [
+          "Understand loop invariants and how they prove correctness.",
+          "Identify base cases and recursive cases in recursive algorithms.",
+          "Trace through code to determine output for given input.",
+          "Recognize common algorithm patterns (divide-and-conquer, greedy, DP).",
+          "Count operations to determine time complexity from code.",
+          "Identify off-by-one errors and boundary conditions.",
+      ],
+      generator: "pseudocode",
+    },
+    proofs: {
+      id: "proofs",
+      title: "Algorithm Proofs",
+      part: "part6",
+      keyPoints: [
+          "Induction: base case, inductive hypothesis, inductive step.",
+          "Loop invariants: initialization, maintenance, termination.",
+          "Exchange argument: swapping greedy choice into OPT doesn't hurt.",
+          "Cut-and-paste: if subproblem solution isn't optimal, replace it.",
+          "Contradiction: assume algorithm fails, derive impossibility.",
+          "Proof by construction: exhibit the object claimed to exist.",
+      ],
+      generator: "proofs",
+    },
+    complexities: {
+      id: "complexities",
+      title: "Complexity Reference",
+      part: "part6",
+      keyPoints: [
+          "Insertion Sort: O(n²) worst/avg, O(n) best, stable, in-place.",
+          "MergeSort: O(n log n) all cases, stable, O(n) space.",
+          "QuickSort: O(n log n) expected, O(n²) worst, in-place, not stable.",
+          "HeapSort: O(n log n) all cases, in-place, not stable.",
+          "Counting/Radix: O(n+k) / O(d(n+k)), stable, needs extra space.",
+          "Binary Search: O(log n).",
+          "BFS/DFS: O(V+E) with adjacency list.",
+          "Dijkstra: O((V+E) log V) with binary heap.",
+          "Bellman-Ford: O(VE).",
+          "Kruskal: O(E log E), Prim: O((V+E) log V).",
+          "Ford-Fulkerson (Edmonds-Karp): O(VE²).",
+      ],
+      generator: "complexities",
     },
   };
 

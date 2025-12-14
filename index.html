@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -8,61 +8,364 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <style>
+    .module { margin-bottom: 48px; }
+    .module__header { 
+      display: flex; 
+      align-items: baseline; 
+      gap: 12px; 
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 12px;
+    }
+    .module__title { margin: 0; font-size: 24px; }
+    .module__subtitle { color: var(--muted); font-size: 14px; }
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .topic-card {
+      background: linear-gradient(140deg, var(--card), var(--card-strong));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color 150ms ease, transform 150ms ease;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .topic-card:hover {
+      border-color: rgba(255,255,255,0.18);
+      transform: translateY(-3px);
+    }
+    .topic-card h4 { margin: 0 0 8px; font-size: 18px; }
+    .topic-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .topic-card .topic-tags { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 6px; 
+      margin-top: 12px; 
+    }
+    .topic-card .topic-tag {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(124, 58, 237, 0.15);
+      font-size: 11px;
+      color: var(--accent-2);
+    }
+    .hero-compact {
+      padding: 48px 0 24px;
+      text-align: center;
+    }
+    .hero-compact h1 { font-size: clamp(28px, 4vw, 40px); margin: 8px 0; }
+    .hero-compact .lede { max-width: 600px; margin: 0 auto; color: var(--muted); }
+  </style>
 </head>
 <body>
   <div class="backdrop"></div>
-  <nav class="topnav">
-    <div class="brand">CSE100 Study</div>
-    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="nav-links" id="nav-links">
-      <a href="parts/part1.html">Foundations</a>
-      <a href="parts/part2.html">Sorting</a>
-      <a href="parts/part3.html">Data Structures</a>
-      <a href="parts/part4.html">Graphs</a>
-      <a href="parts/part5.html">DP & Greedy</a>
-      <a href="parts/part6.html">Exam Prep</a>
-    </div>
-  </nav>
-  <header class="hero">
-    <div class="hero__text">
-      <p class="eyebrow">CSE100 • Algorithms & Analysis</p>
-      <h1>Practice-first study.</h1>
-      <p class="lede">Clean topic pages with unlimited auto-generated drills (click New Exercise forever).</p>
-      <div class="hero__actions">
-        <a class="btn primary" href="parts/part1.html">Start</a>
-      </div>
-      <div class="tags">
-        <span class="tag">Asymptotics</span>
-        <span class="tag">Recurrences</span>
-        <span class="tag">Sorting</span>
-        <span class="tag">Graphs</span>
-        <span class="tag">DP</span>
-      </div>
-    </div>
-    <div class="hero__panel">
-      <div class="panel">
-        <p class="panel__title">How it works</p>
-        <p class="panel__question">Pick a module → open a topic → generate drills → check answers → repeat.</p>
-        <p class="panel__answer">No exercise bank to “run out”.</p>
-      </div>
-    </div>
+  
+  <header class="hero-compact">
+    <p class="eyebrow">CSE100 - Algorithms & Data Structures</p>
+    <h1>Algorithm Study Portal</h1>
+    <p class="lede">Practice-first study with unlimited auto-generated drills. Pick any topic below to start.</p>
   </header>
+
   <main>
-    <section class="section">
-      <div class="section__header">
-        <p class="eyebrow">Pick a module</p>
-        <h2>Go straight to drills</h2>
+    <!-- Part 1: Foundations -->
+    <section class="module">
+      <div class="module__header">
+        <h2 class="module__title">Foundations & Analysis</h2>
+        <span class="module__subtitle">Big-O notation, recurrences, and proof techniques</span>
       </div>
-      <div class="grid grid-compact" id="part-list"></div>
+      <div class="topic-grid">
+        <a href="topics/asymptotic.html" class="topic-card">
+          <h4>Asymptotic Notation</h4>
+          <p>Big-O, Big-Omega, Big-Theta definitions and proofs. Compare growth rates and simplify expressions.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(.)</span>
+            <span class="topic-tag">Omega(.)</span>
+            <span class="topic-tag">Theta(.)</span>
+          </div>
+        </a>
+        <a href="topics/recurrences.html" class="topic-card">
+          <h4>Solving Recurrences</h4>
+          <p>Master Theorem, recursion trees, and substitution method for divide-and-conquer analysis.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Master Theorem</span>
+            <span class="topic-tag">Recursion Tree</span>
+          </div>
+        </a>
+        <a href="topics/induction.html" class="topic-card">
+          <h4>Proof by Induction</h4>
+          <p>Base case, inductive hypothesis, inductive step. Prove formulas and algorithm correctness.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Base Case</span>
+            <span class="topic-tag">Inductive Step</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Part 2: Sorting -->
+    <section class="module">
+      <div class="module__header">
+        <h2 class="module__title">Sorting Algorithms</h2>
+        <span class="module__subtitle">Comparison sorts, linear-time sorts, and selection</span>
+      </div>
+      <div class="topic-grid">
+        <a href="topics/insertion.html" class="topic-card">
+          <h4>Insertion Sort</h4>
+          <p>Loop invariants, step-by-step traces, best/worst case analysis, stability.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(n^2)</span>
+            <span class="topic-tag">Stable</span>
+            <span class="topic-tag">In-place</span>
+          </div>
+        </a>
+        <a href="topics/mergesort.html" class="topic-card">
+          <h4>Merge Sort</h4>
+          <p>Divide-and-conquer, merge operation, recurrence T(n) = 2T(n/2) + O(n).</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(n log n)</span>
+            <span class="topic-tag">Stable</span>
+            <span class="topic-tag">O(n) space</span>
+          </div>
+        </a>
+        <a href="topics/quicksort.html" class="topic-card">
+          <h4>QuickSort</h4>
+          <p>Partitioning, pivot selection, best/worst/average case, in-place sorting.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(n log n) avg</span>
+            <span class="topic-tag">O(n^2) worst</span>
+            <span class="topic-tag">In-place</span>
+          </div>
+        </a>
+        <a href="topics/radix.html" class="topic-card">
+          <h4>Radix Sort</h4>
+          <p>LSD radix, counting sort as subroutine, digit passes, stability requirement.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(d(n+k))</span>
+            <span class="topic-tag">Non-comparison</span>
+          </div>
+        </a>
+        <a href="topics/kselect.html" class="topic-card">
+          <h4>k-Select (Median of Medians)</h4>
+          <p>Linear-time selection, groups of 5, guaranteed good pivot, worst-case O(n).</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(n)</span>
+            <span class="topic-tag">Selection</span>
+          </div>
+        </a>
+      </div>
+    </section>
+    <!-- Part 3: Data Structures -->
+    <section class="module">
+      <div class="module__header">
+        <h2 class="module__title">Data Structures</h2>
+        <span class="module__subtitle">Heaps and graph representations</span>
+      </div>
+      <div class="topic-grid">
+        <a href="topics/heaps.html" class="topic-card">
+          <h4>Heaps & HeapSort</h4>
+          <p>Array representation, parent/child indices, heapify, build-heap, extract-max.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(log n) ops</span>
+            <span class="topic-tag">O(n) build</span>
+            <span class="topic-tag">Priority Queue</span>
+          </div>
+        </a>
+        <a href="topics/graphreps.html" class="topic-card">
+          <h4>Graph Representations</h4>
+          <p>Adjacency matrix vs adjacency list, space/time tradeoffs, directed vs undirected.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(V^2) matrix</span>
+            <span class="topic-tag">O(V+E) list</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Part 4: Graph Algorithms -->
+    <section class="module">
+      <div class="module__header">
+        <h2 class="module__title">Graph Algorithms</h2>
+        <span class="module__subtitle">Traversals, shortest paths, and spanning trees</span>
+      </div>
+      <div class="topic-grid">
+        <a href="topics/traversals.html" class="topic-card">
+          <h4>BFS & DFS</h4>
+          <p>Breadth-first and depth-first traversal, discovery/finish times, visit order.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(V+E)</span>
+            <span class="topic-tag">Queue/Stack</span>
+          </div>
+        </a>
+        <a href="topics/dfsapps.html" class="topic-card">
+          <h4>DFS Applications</h4>
+          <p>Topological sort, strongly connected components, cycle detection, edge classification.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Topo Sort</span>
+            <span class="topic-tag">SCCs</span>
+            <span class="topic-tag">Back Edges</span>
+          </div>
+        </a>
+        <a href="topics/shortestpaths.html" class="topic-card">
+          <h4>Shortest Paths</h4>
+          <p>Dijkstra's algorithm, Bellman-Ford, relaxation, negative weight handling.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Dijkstra</span>
+            <span class="topic-tag">Bellman-Ford</span>
+            <span class="topic-tag">Relaxation</span>
+          </div>
+        </a>
+        <a href="topics/mst.html" class="topic-card">
+          <h4>Minimum Spanning Trees</h4>
+          <p>Kruskal's and Prim's algorithms, cut property, safe edge, union-find.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Kruskal</span>
+            <span class="topic-tag">Prim</span>
+            <span class="topic-tag">Cut Property</span>
+          </div>
+        </a>
+      </div>
+    </section>
+    <!-- Part 5: Advanced -->
+    <section class="module">
+      <div class="module__header">
+        <h2 class="module__title">Advanced Topics</h2>
+        <span class="module__subtitle">Dynamic programming, greedy algorithms, and network flow</span>
+      </div>
+      <div class="topic-grid">
+        <a href="topics/dp.html" class="topic-card">
+          <h4>Dynamic Programming</h4>
+          <p>Optimal substructure, overlapping subproblems, LCS, knapsack, memoization vs tabulation.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">LCS</span>
+            <span class="topic-tag">Knapsack</span>
+            <span class="topic-tag">Memoization</span>
+          </div>
+        </a>
+        <a href="topics/matrixchain.html" class="topic-card">
+          <h4>Matrix Chain Multiplication</h4>
+          <p>Optimal parenthesization, DP recurrence, minimizing scalar multiplications.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">O(n^3)</span>
+            <span class="topic-tag">Interval DP</span>
+          </div>
+        </a>
+        <a href="topics/greedy.html" class="topic-card">
+          <h4>Greedy Algorithms</h4>
+          <p>Greedy choice property, activity selection, Huffman coding, fractional knapsack.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Activity Selection</span>
+            <span class="topic-tag">Huffman</span>
+          </div>
+        </a>
+        <a href="topics/flow.html" class="topic-card">
+          <h4>Network Flow</h4>
+          <p>Ford-Fulkerson, Edmonds-Karp, residual graphs, max-flow min-cut theorem.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Max Flow</span>
+            <span class="topic-tag">Min Cut</span>
+            <span class="topic-tag">Augmenting Paths</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Part 6: Exam Prep -->
+    <section class="module">
+      <div class="module__header">
+        <h2 class="module__title">Exam Preparation</h2>
+        <span class="module__subtitle">Comprehensive review and exam-style practice</span>
+      </div>
+      <div class="topic-grid">
+        <a href="topics/examprep.html" class="topic-card">
+          <h4>True/False Review</h4>
+          <p>55+ exam-style true/false questions covering sorting, graphs, DP, complexity, and more.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">T/F</span>
+            <span class="topic-tag">All Topics</span>
+          </div>
+        </a>
+        <a href="topics/conceptual.html" class="topic-card">
+          <h4>Conceptual Questions</h4>
+          <p>Short answer questions on RAM model, algorithm descriptions, proofs, and theory.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Short Answer</span>
+            <span class="topic-tag">Theory</span>
+          </div>
+        </a>
+        <a href="topics/pseudocode.html" class="topic-card">
+          <h4>Pseudocode Reading</h4>
+          <p>Trace code execution, identify algorithms, find loop invariants, analyze complexity.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Tracing</span>
+            <span class="topic-tag">Invariants</span>
+          </div>
+        </a>
+        <a href="topics/proofs.html" class="topic-card">
+          <h4>Algorithm Proofs</h4>
+          <p>Induction, loop invariants, exchange argument, cut-and-paste, correctness proofs.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Induction</span>
+            <span class="topic-tag">Exchange</span>
+          </div>
+        </a>
+        <a href="topics/complexities.html" class="topic-card">
+          <h4>Complexity Reference</h4>
+          <p>Time and space complexity drills for all algorithms. Best, worst, average cases.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Time</span>
+            <span class="topic-tag">Space</span>
+            <span class="topic-tag">Stability</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Reference Sheets -->
+    <section class="module">
+      <div class="module__header">
+        <h2 class="module__title">📚 Quick Reference Sheets</h2>
+        <span class="module__subtitle">Printable reference pages with all algorithms at a glance</span>
+      </div>
+      <div class="topic-grid">
+        <a href="ref-complexities.html" class="topic-card">
+          <h4>Complexity Cheat Sheet</h4>
+          <p>Complete time/space complexity tables for sorting, graphs, DP, and data structures.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">All Algorithms</span>
+            <span class="topic-tag">Reference</span>
+          </div>
+        </a>
+        <a href="ref-pseudocode.html" class="topic-card">
+          <h4>Pseudocode Reference</h4>
+          <p>Standard pseudocode for all major algorithms with loop invariants and notes.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">All Algorithms</span>
+            <span class="topic-tag">Reference</span>
+          </div>
+        </a>
+        <a href="ref-proofs.html" class="topic-card">
+          <h4>Proofs Reference</h4>
+          <p>Key correctness proofs: induction, loop invariants, exchange arguments, cut-and-paste.</p>
+          <div class="topic-tags">
+            <span class="topic-tag">Correctness</span>
+            <span class="topic-tag">Reference</span>
+          </div>
+        </a>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>Pick a module to start practicing exercises; shuffle quiz cards anytime for a speed drill.</p>
+    <p>CSE100 Algorithm Study Portal - Click any topic to start practicing with unlimited auto-generated exercises.</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
   <script src="assets/js/syllabus.js"></script>
   <script src="assets/js/generators.js"></script>
   <script src="assets/js/app.js"></script>

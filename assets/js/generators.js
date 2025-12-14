@@ -3575,6 +3575,579 @@ When all edge weights are 1 (unweighted graph), use **BFS** starting from $s$.
     };
   }
 
+  // ===== Pseudocode Reading Generator =====
+  function genPseudocode() {
+    const questions = [
+      // Binary Search trace
+      {
+        type: "trace",
+        code: `def binary_search(A, x):
+    lo, hi = 0, len(A) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if A[mid] == x:
+            return mid
+        elif A[mid] < x:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1`,
+        prompt: "Trace binary_search on A = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91] searching for x = 23. What values does `mid` take (in order)?",
+        answer: ["4, 7, 5", "4,7,5"],
+        check: (user) => {
+          const nums = String(user).match(/\d+/g)?.map(Number) ?? [];
+          return nums.length === 3 && nums[0] === 4 && nums[1] === 7 && nums[2] === 5;
+        },
+        solution: `**Trace of binary_search(A, 23):**
+
+1) lo=0, hi=9 → mid=(0+9)//2 = **4**, A[4]=16 < 23, so lo=5
+2) lo=5, hi=9 → mid=(5+9)//2 = **7**, A[7]=56 > 23, so hi=6
+3) lo=5, hi=6 → mid=(5+6)//2 = **5**, A[5]=23 == 23, return 5
+
+**Mid values in order: 4, 7, 5**`
+      },
+      // Insertion sort invariant
+      {
+        type: "invariant",
+        code: `def insertion_sort(A):
+    for i in range(1, len(A)):
+        key = A[i]
+        j = i - 1
+        while j >= 0 and A[j] > key:
+            A[j + 1] = A[j]
+            j -= 1
+        A[j + 1] = key`,
+        prompt: "What is the loop invariant for the outer `for` loop in insertion_sort?",
+        answer: ["A[0..i-1] is sorted", "prefix sorted"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("sort") && (u.includes("0") || u.includes("prefix") || u.includes("first"))) ||
+                 u.includes("a[0..i") || u.includes("a[0...i");
+        },
+        solution: `**Loop Invariant:** At the start of each iteration of the for loop, the subarray A[0..i-1] is sorted.
+
+**Initialization:** Before the first iteration (i=1), A[0..0] contains one element, which is trivially sorted.
+
+**Maintenance:** The inner while loop inserts A[i] into its correct position within A[0..i-1], resulting in A[0..i] being sorted.
+
+**Termination:** When i = len(A), the entire array A[0..n-1] is sorted.`
+      },
+      // Count operations
+      {
+        type: "complexity",
+        code: `def mystery(n):
+    count = 0
+    i = 1
+    while i < n:
+        j = 1
+        while j < n:
+            count += 1
+            j *= 2
+        i += 1
+    return count`,
+        prompt: "What is the time complexity of mystery(n)? Express in Big-O.",
+        answer: ["O(n log n)", "O(nlogn)"],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          return u.includes("nlogn") || u.includes("nlog(n)");
+        },
+        solution: `**Analysis of mystery(n):**
+
+- Outer loop: i goes from 1 to n-1 → **O(n)** iterations
+- Inner loop: j = 1, 2, 4, 8, ... until j ≥ n → **O(log n)** iterations
+- Total: O(n) × O(log n) = **O(n log n)**`
+      },
+      // Recursive function output
+      {
+        type: "trace",
+        code: `def rec(n):
+    if n <= 1:
+        return n
+    return rec(n-1) + rec(n-2)`,
+        prompt: "What does rec(6) return?",
+        answer: ["8"],
+        check: (user) => normalize(user) === "8",
+        solution: `**This is the Fibonacci sequence!**
+
+rec(0) = 0
+rec(1) = 1
+rec(2) = rec(1) + rec(0) = 1 + 0 = 1
+rec(3) = rec(2) + rec(1) = 1 + 1 = 2
+rec(4) = rec(3) + rec(2) = 2 + 1 = 3
+rec(5) = rec(4) + rec(3) = 3 + 2 = 5
+rec(6) = rec(5) + rec(4) = 5 + 3 = **8**`
+      },
+      // Identify algorithm
+      {
+        type: "identify",
+        code: `def algo(A, lo, hi):
+    if lo >= hi:
+        return
+    pivot = A[hi]
+    i = lo - 1
+    for j in range(lo, hi):
+        if A[j] <= pivot:
+            i += 1
+            A[i], A[j] = A[j], A[i]
+    A[i+1], A[hi] = A[hi], A[i+1]
+    algo(A, lo, i)
+    algo(A, i+2, hi)`,
+        prompt: "What algorithm is this? What is its average-case time complexity?",
+        answer: ["QuickSort", "quicksort O(n log n)"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("quick") && (u.includes("sort") || u.includes("nlogn") || u.includes("n log n"));
+        },
+        solution: `**This is QuickSort (Lomuto partition scheme)**
+
+Key features:
+- Pivot is the last element A[hi]
+- Partitions array so elements ≤ pivot are on the left
+- Recursively sorts both partitions
+
+**Time Complexity:**
+- Average case: O(n log n)
+- Worst case: O(n²) when pivot is always min or max`
+      },
+      // BFS identification
+      {
+        type: "identify",
+        code: `def algo(graph, start):
+    visited = set()
+    queue = [start]
+    visited.add(start)
+    result = []
+    while queue:
+        v = queue.pop(0)
+        result.append(v)
+        for neighbor in graph[v]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+    return result`,
+        prompt: "What graph algorithm is this? What data structure does it use?",
+        answer: ["BFS", "breadth-first search queue"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("bfs") || u.includes("breadth")) && u.includes("queue");
+        },
+        solution: `**This is Breadth-First Search (BFS)**
+
+Key features:
+- Uses a **queue** (FIFO) data structure
+- Visits vertices level by level
+- Tracks visited vertices to avoid revisiting
+
+**Time Complexity:** O(V + E) with adjacency list`
+      },
+      // Merge operation
+      {
+        type: "trace",
+        code: `def merge(L, R):
+    result = []
+    i = j = 0
+    while i < len(L) and j < len(R):
+        if L[i] <= R[j]:
+            result.append(L[i])
+            i += 1
+        else:
+            result.append(R[j])
+            j += 1
+    result.extend(L[i:])
+    result.extend(R[j:])
+    return result`,
+        prompt: "What is merge([1, 4, 7], [2, 5, 6])?",
+        answer: ["[1, 2, 4, 5, 6, 7]", "1,2,4,5,6,7", "1 2 4 5 6 7"],
+        check: (user) => {
+          const nums = String(user).match(/\d+/g)?.map(Number) ?? [];
+          return nums.join(",") === "1,2,4,5,6,7";
+        },
+        solution: `**Trace of merge([1, 4, 7], [2, 5, 6]):**
+
+1) Compare 1 vs 2: append 1, i=1
+2) Compare 4 vs 2: append 2, j=1
+3) Compare 4 vs 5: append 4, i=2
+4) Compare 7 vs 5: append 5, j=2
+5) Compare 7 vs 6: append 6, j=3
+6) R exhausted, extend with L[2:] = [7]
+
+**Result: [1, 2, 4, 5, 6, 7]**`
+      },
+      // Heapify identification
+      {
+        type: "identify",
+        code: `def algo(A, i, n):
+    largest = i
+    left = 2*i + 1
+    right = 2*i + 2
+    if left < n and A[left] > A[largest]:
+        largest = left
+    if right < n and A[right] > A[largest]:
+        largest = right
+    if largest != i:
+        A[i], A[largest] = A[largest], A[i]
+        algo(A, largest, n)`,
+        prompt: "What heap operation is this? Is it for a min-heap or max-heap?",
+        answer: ["max-heapify", "heapify max-heap", "max heap heapify"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("heapify") && u.includes("max");
+        },
+        solution: `**This is Max-Heapify (also called "sift-down")**
+
+Key features:
+- Compares node with children, finds the **largest**
+- Swaps with largest child if heap property violated
+- Recursively fixes the subtree
+- Uses **max-heap** property (parent ≥ children)
+
+**Time Complexity:** O(log n) - height of heap`
+      }
+    ];
+
+    const q = sample(questions);
+
+    return {
+      prompt: `\`\`\`python
+${q.code}
+\`\`\`
+
+${q.prompt}`,
+      answer: q.answer,
+      check: q.check,
+      solution: q.solution
+    };
+  }
+
+  // ===== Algorithm Proofs Generator =====
+  function genProofs() {
+    const questions = [
+      // Loop invariant proof
+      {
+        type: "invariant",
+        prompt: "To prove an algorithm correct using a loop invariant, what three things must you show?",
+        answer: ["initialization, maintenance, termination"],
+        check: (user) => {
+          const u = normalize(user);
+          const hasInit = u.includes("init");
+          const hasMaint = u.includes("maint") || u.includes("preserv");
+          const hasTerm = u.includes("termin");
+          return (hasInit && hasMaint && hasTerm) || (u.includes("three") && u.includes("step"));
+        },
+        solution: `**Three parts of a loop invariant proof:**
+
+1. **Initialization:** The invariant is true before the first iteration.
+
+2. **Maintenance:** If the invariant is true before an iteration, it remains true after the iteration.
+
+3. **Termination:** When the loop terminates, the invariant (along with the termination condition) implies the desired postcondition.`
+      },
+      // Exchange argument
+      {
+        type: "technique",
+        prompt: "What proof technique shows that swapping a greedy choice into an optimal solution doesn't make it worse?",
+        answer: ["exchange argument", "exchange"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("exchange");
+        },
+        solution: `**Exchange Argument**
+
+Used to prove greedy algorithms correct:
+
+1. Assume an optimal solution OPT that differs from the greedy solution.
+2. Find the first place where OPT makes a different choice than greedy.
+3. Show that "exchanging" OPT's choice for the greedy choice produces a solution that is at least as good.
+4. Repeat until OPT matches the greedy solution.
+
+**Example:** Activity selection - if OPT doesn't pick the earliest-finishing activity, swapping it in leaves room for at least as many activities.`
+      },
+      // Cut-and-paste for DP
+      {
+        type: "technique",
+        prompt: "In proving optimal substructure for dynamic programming, what technique assumes a subproblem solution is not optimal and derives a contradiction?",
+        answer: ["cut-and-paste", "cut and paste", "contradiction"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("cut") || u.includes("paste") || u.includes("contradiction");
+        },
+        solution: `**Cut-and-Paste Argument**
+
+Used to prove optimal substructure:
+
+1. Assume an optimal solution to the main problem.
+2. Suppose (for contradiction) that a subproblem within this solution is not solved optimally.
+3. "Cut out" the suboptimal part and "paste in" the optimal subproblem solution.
+4. Show this produces a better overall solution - contradiction!
+
+**Example (Shortest Paths):** If path $s \\to v$ is optimal and goes through $u$, then $s \\to u$ must also be optimal. If not, replacing $s \\to u$ with a shorter path gives a shorter $s \\to v$, contradiction.`
+      },
+      // MST safe edge proof
+      {
+        type: "proof",
+        prompt: "Prove: For any cut (S, V-S), the minimum-weight crossing edge is in some MST. What happens if an MST doesn't contain this edge?",
+        answer: ["cycle", "swap", "exchange"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("cycle") || u.includes("swap") || u.includes("exchange") || u.includes("replace");
+        },
+        solution: `**Proof of MST Cut Property:**
+
+Let $e = (u, v)$ be the minimum-weight edge crossing cut $(S, V-S)$.
+
+**Suppose** MST $T$ does not contain $e$.
+
+1. Adding $e$ to $T$ creates a **cycle** $C$.
+2. This cycle must cross the cut at least twice (since $u \\in S, v \\notin S$).
+3. Let $e' \\neq e$ be another edge in $C$ crossing the cut.
+4. Since $e$ is minimum-weight crossing edge: $w(e) \\le w(e')$.
+5. **Swap:** $T' = T - e' + e$ is a spanning tree with $w(T') \\le w(T)$.
+6. Since $T$ is an MST, $w(T') = w(T)$, so $T'$ is also an MST containing $e$. ∎`
+      },
+      // Dijkstra correctness
+      {
+        type: "proof",
+        prompt: "What key property must hold for Dijkstra's algorithm to be correct? What breaks if this property is violated?",
+        answer: ["non-negative weights", "nonnegative", "no negative"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("non") && u.includes("negative") || u.includes("positive") || u.includes(">= 0") || u.includes("≥ 0");
+        },
+        solution: `**Dijkstra requires non-negative edge weights.**
+
+**Why it's needed:**
+
+Dijkstra assumes: once a vertex $v$ is extracted from the priority queue, $d[v]$ is final.
+
+**If negative edges exist:**
+- A later path through a negative edge could reduce $d[v]$.
+- But $v$ is already "settled" and won't be updated.
+
+**Counterexample:**
+- Edges: A→B (weight 1), A→C (weight 5), C→B (weight -10)
+- Dijkstra from A: extracts B with d[B]=1
+- But A→C→B has weight 5 + (-10) = -5 < 1
+- Dijkstra gives wrong answer!`
+      },
+      // DFS back edge implies cycle
+      {
+        type: "proof",
+        prompt: "Prove: A directed graph has a cycle if and only if DFS discovers a back edge.",
+        answer: ["back edge", "gray", "ancestor"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("back") && u.includes("edge")) || u.includes("gray") || u.includes("ancestor");
+        },
+        solution: `**Proof: Cycle ↔ Back Edge**
+
+**(⇒) If there's a cycle, DFS finds a back edge:**
+- Let $v_1 \\to v_2 \\to \\cdots \\to v_k \\to v_1$ be a cycle.
+- Let $v_i$ be the first vertex discovered by DFS.
+- DFS will explore path $v_i \\to v_{i+1} \\to \\cdots$
+- Eventually reaches $v_{i-1}$ (or cycles back to $v_i$).
+- Edge $v_{i-1} \\to v_i$ goes to an ancestor (gray vertex) → back edge!
+
+**(⇐) If DFS finds back edge, there's a cycle:**
+- Back edge $(u, v)$ goes from $u$ to an ancestor $v$.
+- $v$ is gray, so there's a path $v \\leadsto u$ in the DFS tree.
+- Combined with edge $u \\to v$: cycle $v \\leadsto u \\to v$. ∎`
+      },
+      // Induction structure
+      {
+        type: "structure",
+        prompt: "In a proof by induction, what do you assume in the inductive hypothesis, and what do you prove in the inductive step?",
+        answer: ["assume P(k), prove P(k+1)", "P(k) implies P(k+1)"],
+        check: (user) => {
+          const u = normalize(user);
+          return (u.includes("p(k)") || u.includes("assume")) && (u.includes("p(k+1)") || u.includes("k+1") || u.includes("implies"));
+        },
+        solution: `**Structure of Proof by Induction:**
+
+**Inductive Hypothesis:** Assume $P(k)$ holds for an arbitrary $k \\ge n_0$.
+
+**Inductive Step:** Prove $P(k) \\Rightarrow P(k+1)$.
+
+**Process:**
+1. Start with what you want to prove: $P(k+1)$
+2. Manipulate/decompose to involve the case $k$
+3. Apply the inductive hypothesis $P(k)$
+4. Complete the proof of $P(k+1)$
+
+**Note:** Don't forget the base case $P(n_0)$!`
+      },
+      // Comparison sort lower bound
+      {
+        type: "proof",
+        prompt: "How do you prove that any comparison-based sorting algorithm requires Ω(n log n) comparisons?",
+        answer: ["decision tree", "n! leaves", "log(n!)"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("decision tree") || u.includes("n!") || u.includes("factorial") || u.includes("log(n!)");
+        },
+        solution: `**Lower Bound Proof via Decision Trees:**
+
+1. Model any comparison sort as a **decision tree**.
+2. Each internal node is a comparison.
+3. Each leaf represents a unique permutation output.
+4. There are $n!$ permutations, so at least $n!$ leaves.
+
+**Height Analysis:**
+- A binary tree with $L$ leaves has height $\\ge \\log_2 L$.
+- Height $\\ge \\log_2(n!)$.
+- By Stirling: $\\log_2(n!) = \\Theta(n \\log n)$.
+
+**Conclusion:** Any comparison sort needs $\\Omega(n \\log n)$ comparisons in the worst case.`
+      }
+    ];
+
+    const q = sample(questions);
+
+    return {
+      prompt: q.prompt,
+      answer: q.answer,
+      check: q.check,
+      solution: q.solution
+    };
+  }
+
+  // ===== Complexity Reference Generator =====
+  function genComplexities() {
+    const algorithms = [
+      // Sorting
+      { name: "Insertion Sort", best: "O(n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: true },
+      { name: "Merge Sort", best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)", space: "O(n)", stable: true },
+      { name: "Quick Sort", best: "O(n log n)", avg: "O(n log n)", worst: "O(n²)", space: "O(log n)", stable: false },
+      { name: "Heap Sort", best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)", space: "O(1)", stable: false },
+      { name: "Counting Sort", best: "O(n+k)", avg: "O(n+k)", worst: "O(n+k)", space: "O(k)", stable: true },
+      { name: "Radix Sort", best: "O(dn)", avg: "O(dn)", worst: "O(dn)", space: "O(n+k)", stable: true },
+      // Searching
+      { name: "Binary Search", best: "O(1)", avg: "O(log n)", worst: "O(log n)", space: "O(1)", stable: null },
+      { name: "Linear Search", best: "O(1)", avg: "O(n)", worst: "O(n)", space: "O(1)", stable: null },
+      // Graph
+      { name: "BFS", best: "O(V+E)", avg: "O(V+E)", worst: "O(V+E)", space: "O(V)", stable: null },
+      { name: "DFS", best: "O(V+E)", avg: "O(V+E)", worst: "O(V+E)", space: "O(V)", stable: null },
+      { name: "Dijkstra (binary heap)", best: "O((V+E) log V)", avg: "O((V+E) log V)", worst: "O((V+E) log V)", space: "O(V)", stable: null },
+      { name: "Bellman-Ford", best: "O(VE)", avg: "O(VE)", worst: "O(VE)", space: "O(V)", stable: null },
+      { name: "Kruskal", best: "O(E log E)", avg: "O(E log E)", worst: "O(E log E)", space: "O(V)", stable: null },
+      { name: "Prim (binary heap)", best: "O((V+E) log V)", avg: "O((V+E) log V)", worst: "O((V+E) log V)", space: "O(V)", stable: null },
+      // Heap operations
+      { name: "Build-Heap", best: "O(n)", avg: "O(n)", worst: "O(n)", space: "O(1)", stable: null },
+      { name: "Heap Insert", best: "O(1)", avg: "O(log n)", worst: "O(log n)", space: "O(1)", stable: null },
+      { name: "Heap Extract-Max", best: "O(log n)", avg: "O(log n)", worst: "O(log n)", space: "O(1)", stable: null },
+    ];
+
+    const type = sample(["worst", "best", "avg", "space", "stable", "compare", "identify"]);
+
+    if (type === "compare") {
+      const sorts = algorithms.filter(a => a.stable !== null);
+      const a1 = sample(sorts);
+      let a2 = sample(sorts);
+      while (a2.name === a1.name) a2 = sample(sorts);
+      
+      const prompt = `Compare ${a1.name} and ${a2.name}: which has better worst-case time complexity?`;
+      // Parse complexity for comparison (simplified)
+      const parseOrder = (s) => {
+        if (s.includes("n²")) return 2;
+        if (s.includes("n log n")) return 1.5;
+        if (s.includes("log n")) return 0.5;
+        if (s.includes("n+k") || s.includes("dn")) return 1;
+        if (s.includes("n")) return 1;
+        return 0;
+      };
+      const o1 = parseOrder(a1.worst);
+      const o2 = parseOrder(a2.worst);
+      const better = o1 < o2 ? a1.name : (o2 < o1 ? a2.name : "equal");
+      
+      return {
+        prompt,
+        answer: [better],
+        check: (user) => {
+          const u = normalize(user);
+          if (better === "equal") return u.includes("same") || u.includes("equal");
+          return u.includes(normalize(better));
+        },
+        solution: `**Comparison:**
+- ${a1.name} worst-case: ${a1.worst}
+- ${a2.name} worst-case: ${a2.worst}
+
+**Answer:** ${better === "equal" ? "They are equal" : better + " is better"}`
+      };
+    }
+
+    if (type === "identify") {
+      const complexities = ["O(n²)", "O(n log n)", "O(n)", "O(log n)", "O(V+E)", "O(VE)"];
+      const c = sample(complexities);
+      const matching = algorithms.filter(a => a.worst === c || a.avg === c);
+      
+      if (matching.length > 0) {
+        const prompt = `Name an algorithm with ${c} time complexity.`;
+        return {
+          prompt,
+          answer: matching.map(a => a.name),
+          check: (user) => {
+            const u = normalize(user);
+            return matching.some(a => u.includes(normalize(a.name).split(" ")[0]));
+          },
+          solution: `**Algorithms with ${c} complexity:**
+${matching.map(a => `- ${a.name}`).join("\n")}`
+        };
+      }
+    }
+
+    if (type === "stable") {
+      const sorts = algorithms.filter(a => a.stable !== null);
+      const algo = sample(sorts);
+      const prompt = `Is ${algo.name} stable? Answer yes or no.`;
+      return {
+        prompt,
+        answer: [algo.stable ? "yes" : "no"],
+        check: (user) => eqAnswer(user, algo.stable ? "yes" : "no"),
+        solution: `**${algo.name} is ${algo.stable ? "stable" : "NOT stable"}.**
+
+${algo.stable 
+  ? "Equal elements maintain their relative order from the input." 
+  : "Equal elements may be reordered during the sorting process."}`
+      };
+    }
+
+    if (type === "space") {
+      const algo = sample(algorithms);
+      const prompt = `What is the auxiliary space complexity of ${algo.name}?`;
+      return {
+        prompt,
+        answer: [algo.space],
+        check: (user) => {
+          const u = normalize(user).replace(/\s+/g, "");
+          const e = normalize(algo.space).replace(/\s+/g, "");
+          return u.includes(e) || u === e.replace("o(", "").replace(")", "");
+        },
+        solution: `**${algo.name} Space Complexity: ${algo.space}**`
+      };
+    }
+
+    // Default: time complexity question
+    const algo = sample(algorithms);
+    const caseType = sample(["worst", "best", "avg"]);
+    const caseLabel = caseType === "worst" ? "worst-case" : (caseType === "best" ? "best-case" : "average-case");
+    const ans = algo[caseType];
+    
+    const prompt = `What is the ${caseLabel} time complexity of ${algo.name}?`;
+    return {
+      prompt,
+      answer: [ans],
+      check: (user) => {
+        const u = normalize(user).replace(/\s+/g, "");
+        const e = normalize(ans).replace(/\s+/g, "");
+        return u.includes(e) || u === e.replace("o(", "").replace(")", "");
+      },
+      solution: `**${algo.name} Time Complexity:**
+- Best: ${algo.best}
+- Average: ${algo.avg}
+- Worst: ${algo.worst}
+- Space: ${algo.space}${algo.stable !== null ? `\n- Stable: ${algo.stable ? "Yes" : "No"}` : ""}`
+    };
+  }
+
   const GENERATORS = {
     asymptotic: genAsymptotic,
     recurrences: genRecurrences,
@@ -3596,6 +4169,9 @@ When all edge weights are 1 (unweighted graph), use **BFS** starting from $s$.
     flow: genFlow,
     examprep: genExamPrep,
     conceptual: genConceptual,
+    pseudocode: genPseudocode,
+    proofs: genProofs,
+    complexities: genComplexities,
   };
 
   window.GENERATORS = GENERATORS;

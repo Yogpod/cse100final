@@ -1,0 +1,341 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proofs Reference - CSE100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <style>
+    .ref-container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    .ref-header { text-align: center; margin-bottom: 48px; }
+    .ref-header h1 { font-size: 36px; margin-bottom: 12px; }
+    .ref-header p { color: var(--muted); max-width: 600px; margin: 0 auto; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: var(--accent-2); text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+    .proof-section { margin-bottom: 56px; }
+    .proof-section h2 { 
+      margin: 0 0 20px; 
+      padding-bottom: 8px; 
+      border-bottom: 2px solid var(--accent);
+    }
+    .proof-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .proof-card h3 { margin: 0 0 16px; color: var(--accent-2); }
+    .proof-card h4 { margin: 16px 0 8px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .proof-card p, .proof-card li { line-height: 1.7; }
+    .proof-card ul, .proof-card ol { margin: 8px 0; padding-left: 24px; }
+    .proof-card .formula {
+      background: rgba(124, 58, 237, 0.1);
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 12px 0;
+      font-family: 'Space Grotesk', monospace;
+    }
+    .technique-box {
+      background: rgba(34, 197, 94, 0.1);
+      border-left: 3px solid #22c55e;
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .technique-box h4 { margin: 0 0 8px; color: #22c55e; }
+    .warning-box {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid #ef4444;
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .warning-box h4 { margin: 0 0 8px; color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="backdrop"></div>
+  
+  <div class="ref-container">
+    <a href="index.html" class="back-link"> Back to Home</a>
+    
+    <div class="ref-header">
+      <h1>Algorithm Proofs Reference</h1>
+      <p>Key proof techniques and correctness arguments for algorithms in CSE100.</p>
+    </div>
+
+    <div class="proof-section">
+      <h2>Proof Techniques Overview</h2>
+      
+      <div class="technique-box">
+        <h4>Induction</h4>
+        <p>Prove a property P(n) holds for all n by: (1) proving base case P(1), and (2) proving P(k) implies P(k+1) for arbitrary k.</p>
+      </div>
+      
+      <div class="technique-box">
+        <h4>Loop Invariant</h4>
+        <p>Prove algorithm correctness by showing a property that: (1) holds before the loop starts (Initialization), (2) if true before an iteration, remains true after (Maintenance), and (3) implies correctness when loop terminates (Termination).</p>
+      </div>
+      
+      <div class="technique-box">
+        <h4>Exchange Argument</h4>
+        <p>Prove greedy is optimal by: (1) taking any optimal solution, (2) showing you can exchange elements to match greedy choices without making solution worse, (3) concluding greedy is also optimal.</p>
+      </div>
+      
+      <div class="technique-box">
+        <h4>Cut-and-Paste</h4>
+        <p>Prove optimal substructure by contradiction: if a subproblem solution wasn't optimal, you could "cut" it out and "paste" in a better one, contradicting overall optimality.</p>
+      </div>
+    </div>
+
+    <div class="proof-section">
+      <h2>Sorting Algorithm Proofs</h2>
+      
+      <div class="proof-card">
+        <h3>Insertion Sort Correctness</h3>
+        <h4>Loop Invariant</h4>
+        <p>At the start of each iteration of the for loop, the subarray A[1..i-1] consists of the elements originally in A[1..i-1], but in sorted order.</p>
+        
+        <h4>Initialization</h4>
+        <p>When i = 2, the subarray A[1..1] has just one element, which is trivially sorted.</p>
+        
+        <h4>Maintenance</h4>
+        <p>The inner while loop moves elements A[i-1], A[i-2], ... one position right until the correct position for key = A[i] is found. After insertion, A[1..i] is sorted.</p>
+        
+        <h4>Termination</h4>
+        <p>When i = n + 1, the invariant tells us A[1..n] is sorted, so the entire array is sorted.</p>
+      </div>
+      
+      <div class="proof-card">
+        <h3>Merge Sort: O(n log n) via Recurrence</h3>
+        <h4>Recurrence</h4>
+        <div class="formula">T(n) = 2T(n/2) + O(n)</div>
+        
+        <h4>Master Theorem Application</h4>
+        <p>Here a = 2, b = 2, f(n) = O(n). We have log(2) = 1, so f(n) = Θ(n^log_b(a)) = Θ(n).</p>
+        <p>This is Case 2 of Master Theorem: T(n) = Θ(n log n).</p>
+        
+        <h4>Correctness (Induction)</h4>
+        <p><strong>Base:</strong> Array of size 1 is sorted.</p>
+        <p><strong>Inductive:</strong> Assume MergeSort correctly sorts arrays of size < n. For size n, the two halves are correctly sorted by IH, and Merge correctly combines them.</p>
+      </div>
+      
+      <div class="proof-card">
+        <h3>QuickSort Average Case: O(n log n)</h3>
+        <h4>Key Insight</h4>
+        <p>On average, the pivot divides the array roughly in half. Expected number of comparisons:</p>
+        <div class="formula">E[comparisons] = Σᵢ Σⱼ (2 / (j - i + 1)) = O(n log n)</div>
+        
+        <h4>Worst Case: O(n)</h4>
+        <p>Occurs when pivot is always the smallest or largest element (e.g., already sorted array with first/last pivot). Recurrence: T(n) = T(n-1) + O(n) = O(n).</p>
+      </div>
+      
+      <div class="proof-card">
+        <h3>Comparison Sort Lower Bound: Ω(n log n)</h3>
+        <h4>Decision Tree Argument</h4>
+        <p>Any comparison-based sorting algorithm can be represented as a binary decision tree where:</p>
+        <ul>
+          <li>Each internal node is a comparison</li>
+          <li>Each leaf is a permutation of the input</li>
+          <li>There are n! possible permutations (leaves)</li>
+        </ul>
+        <p>A binary tree with n! leaves has height at least log(n!) = Ω(n log n) by Stirling's approximation.</p>
+      </div>
+    </div>
+
+    <div class="proof-section">
+      <h2>Heap Proofs</h2>
+      
+      <div class="proof-card">
+        <h3>Build-Heap is O(n)</h3>
+        <h4>Not-so-tight bound</h4>
+        <p>n/2 calls to Heapify, each O(log n)  O(n log n). But this is not tight!</p>
+        
+        <h4>Tight Analysis</h4>
+        <p>Heapify at height h takes O(h). Number of nodes at height h is at most n/2^(h+1).</p>
+        <div class="formula">Total = Σ (n/2^(h+1))  O(h) = O(n)  Σ (h/2^h) = O(n)</div>
+        <p>The sum Σ h/2^h converges to 2, giving O(n).</p>
+      </div>
+    </div>
+
+    <div class="proof-section">
+      <h2>Graph Algorithm Proofs</h2>
+      
+      <div class="proof-card">
+        <h3>BFS Shortest Path (Unweighted)</h3>
+        <h4>Claim</h4>
+        <p>After BFS from source s, dist[v] equals the shortest path distance from s to v.</p>
+        
+        <h4>Proof Sketch (Induction on distance)</h4>
+        <p><strong>Base:</strong> dist[s] = 0 is correct.</p>
+        <p><strong>Inductive:</strong> Assume all vertices at distance < d have correct distances. A vertex v at distance d is discovered from some vertex u at distance d-1. Since dist[u] = d-1 (by IH), we set dist[v] = d.</p>
+        
+        <div class="warning-box">
+          <h4>Key Property</h4>
+          <p>BFS explores vertices in order of distance from source. Vertices are never revisited, so first discovery gives shortest distance.</p>
+        </div>
+      </div>
+      
+      <div class="proof-card">
+        <h3>Dijkstra's Correctness</h3>
+        <h4>Invariant</h4>
+        <p>When vertex u is extracted from the priority queue, dist[u] is the true shortest path distance.</p>
+        
+        <h4>Proof (by contradiction)</h4>
+        <p>Suppose u is the first vertex extracted with incorrect dist[u]. Let s  ...  x  y  ...  u be the true shortest path, where x is in the settled set and y is not.</p>
+        <ul>
+          <li>dist[x] is correct (u is first incorrect)</li>
+          <li>When x was settled, edge (x,y) was relaxed</li>
+          <li>So dist[y]  dist[x] + w(x,y) = true distance to y</li>
+          <li>Since y is on shortest path to u: dist[y]  dist to u < dist[u]</li>
+          <li>But u was extracted before y, so dist[u]  dist[y]. Contradiction!</li>
+        </ul>
+        
+        <div class="warning-box">
+          <h4>Requires Non-negative Weights</h4>
+          <p>If edges can be negative, a later path through an unsettled vertex could be shorter.</p>
+        </div>
+      </div>
+      
+      <div class="proof-card">
+        <h3>MST Cut Property</h3>
+        <h4>Theorem</h4>
+        <p>For any cut (S, V-S), the minimum weight edge crossing the cut is in some MST.</p>
+        
+        <h4>Proof (Exchange argument)</h4>
+        <p>Let e = (u,v) be the min-weight crossing edge. Suppose MST T doesn't contain e.</p>
+        <ul>
+          <li>T has a path from u to v (it's a spanning tree)</li>
+          <li>This path must cross the cut via some edge e'</li>
+          <li>T - e' + e is still a spanning tree</li>
+          <li>Since w(e)  w(e'), this new tree has weight  T</li>
+          <li>So T - e' + e is also an MST containing e</li>
+        </ul>
+      </div>
+      
+      <div class="proof-card">
+        <h3>Kruskal's Correctness</h3>
+        <h4>Proof</h4>
+        <p>Each edge added by Kruskal's is a minimum-weight edge crossing some cut:</p>
+        <ul>
+          <li>When considering edge (u,v), let S be u's component</li>
+          <li>(u,v) is the minimum unprocessed edge, so it's minimum crossing (S, V-S)</li>
+          <li>By Cut Property, (u,v) is in some MST</li>
+        </ul>
+        <p>Since each edge is safe (in some MST), the final result is an MST.</p>
+      </div>
+    </div>
+
+    <div class="proof-section">
+      <h2>Dynamic Programming Proofs</h2>
+      
+      <div class="proof-card">
+        <h3>Optimal Substructure</h3>
+        <h4>Definition</h4>
+        <p>A problem has optimal substructure if an optimal solution contains optimal solutions to subproblems.</p>
+        
+        <h4>LCS Example</h4>
+        <p>If Z is an LCS of X and Y, then:</p>
+        <ul>
+          <li>If x = y, then z = x = y and Z_{k-1} is an LCS of X_{m-1} and Y_{n-1}</li>
+          <li>If x  y and z  x, then Z is an LCS of X_{m-1} and Y</li>
+          <li>If x  y and z  y, then Z is an LCS of X and Y_{n-1}</li>
+        </ul>
+        
+        <h4>Proof (Cut-and-paste)</h4>
+        <p>If Z_{k-1} weren't an LCS of X_{m-1} and Y_{n-1}, there would be a longer common subsequence W. But then W + z would be a longer CS of X and Y than Z, contradiction.</p>
+      </div>
+      
+      <div class="proof-card">
+        <h3>Matrix Chain: Correctness</h3>
+        <h4>Recurrence</h4>
+        <div class="formula">m[i,j] = min_{i  k < j} { m[i,k] + m[k+1,j] + p_{i-1}  p_k  p_j }</div>
+        
+        <h4>Proof of Optimal Substructure</h4>
+        <p>To optimally parenthesize Aᵢ...Aⱼ, we must split at some k. The cost is:</p>
+        <ul>
+          <li>Cost to compute Aᵢ...A (must be optimal, or we could do better)</li>
+          <li>Cost to compute A...Aⱼ (must be optimal)</li>
+          <li>Cost to multiply the two results: p_{i-1}  p_k  p_j</li>
+        </ul>
+        <p>We try all possible k and take the minimum.</p>
+      </div>
+    </div>
+
+    <div class="proof-section">
+      <h2>Greedy Algorithm Proofs</h2>
+      
+      <div class="proof-card">
+        <h3>Activity Selection: Greedy is Optimal</h3>
+        <h4>Greedy Choice</h4>
+        <p>Always pick the activity with earliest finish time.</p>
+        
+        <h4>Proof (Exchange Argument)</h4>
+        <p>Let OPT be any optimal solution. Let a be the greedy choice (earliest finish). Let b be the first activity in OPT.</p>
+        <ul>
+          <li>If a = b, we're done for the first activity</li>
+          <li>If a  b, then finish(a)  finish(b) (a finishes earliest)</li>
+          <li>OPT' = OPT - {b} + {a} is still valid (a finishes before b did)</li>
+          <li>|OPT'| = |OPT|, so OPT' is also optimal</li>
+        </ul>
+        <p>Repeat for remaining activities: greedy matches some optimal solution.</p>
+      </div>
+      
+      <div class="proof-card">
+        <h3>Huffman Coding: Optimality</h3>
+        <h4>Lemma 1</h4>
+        <p>The two lowest-frequency characters must be siblings at maximum depth.</p>
+        
+        <h4>Lemma 2</h4>
+        <p>Merging two lowest-frequency nodes preserves optimality.</p>
+        
+        <h4>Proof Sketch</h4>
+        <p>By exchange argument: if the two lowest-freq nodes aren't deepest, swap them with the deepest nodes. Cost doesn't increase (lower freq  higher depth is better than higher freq  higher depth).</p>
+      </div>
+    </div>
+
+    <div class="proof-section">
+      <h2>Network Flow Proofs</h2>
+      
+      <div class="proof-card">
+        <h3>Max-Flow Min-Cut Theorem</h3>
+        <h4>Theorem</h4>
+        <p>The maximum flow value equals the minimum cut capacity.</p>
+        
+        <h4>Three Equivalent Statements</h4>
+        <ol>
+          <li>f is a maximum flow</li>
+          <li>The residual network has no augmenting path from s to t</li>
+          <li>|f| = c(S, T) for some cut (S, T)</li>
+        </ol>
+        
+        <h4>Proof: (2)  (3)</h4>
+        <p>If no augmenting path exists, let S = {vertices reachable from s in residual graph}. Then (S, V-S) is a cut where all forward edges are saturated and all backward edges have zero flow. Thus |f| = capacity of this cut.</p>
+        
+        <h4>Proof: (3)  (1)</h4>
+        <p>For any flow f and cut (S,T): |f|  c(S,T). If |f| = c(S,T), then f must be maximum.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: 'utf8', right: 'utf8', display: true},
+          {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+      });
+    });
+  </script>
+</body>
+</html>
