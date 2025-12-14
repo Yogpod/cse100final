@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complete Algorithm Reference - CSE100</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-size: 12px; line-height: 1.4; }
+    .ref-container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+    .ref-header { text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--accent); }
+    .ref-header h1 { font-size: 28px; margin: 0 0 8px; }
+    .ref-header p { color: var(--muted); margin: 0; }
+    .back-link { display: inline-block; margin-bottom: 16px; color: var(--accent-2); text-decoration: none; font-size: 13px; }
+    
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+    
+    .section { margin-bottom: 20px; }
+    .section h2 { font-size: 16px; margin: 0 0 10px; padding: 6px 10px; background: var(--accent); color: white; border-radius: 4px; }
+    .section h3 { font-size: 13px; margin: 12px 0 6px; color: var(--accent-2); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+    
+    .mini-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; }
+    .mini-table th, .mini-table td { padding: 4px 6px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .mini-table th { background: rgba(124,58,237,0.15); color: var(--accent-2); font-weight: 600; font-size: 10px; }
+    .mini-table code { background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 3px; font-size: 10px; }
+    
+    .tag-s { background: rgba(34,197,94,0.2); color: #22c55e; padding: 1px 4px; border-radius: 3px; font-size: 9px; }
+    .tag-u { background: rgba(239,68,68,0.2); color: #ef4444; padding: 1px 4px; border-radius: 3px; font-size: 9px; }
+    .tag-i { background: rgba(59,130,246,0.2); color: #3b82f6; padding: 1px 4px; border-radius: 3px; font-size: 9px; }
+    
+    .code-mini { background: rgba(0,0,0,0.4); border-radius: 4px; padding: 8px 10px; font-family: 'Space Grotesk', monospace; font-size: 10px; line-height: 1.5; overflow-x: auto; white-space: pre; margin-bottom: 8px; }
+    .code-mini .k { color: #c792ea; }
+    .code-mini .f { color: #82aaff; }
+    .code-mini .c { color: #676e95; }
+    
+    .proof-mini { background: rgba(0,0,0,0.25); border-left: 2px solid var(--accent); padding: 6px 10px; margin-bottom: 8px; font-size: 11px; }
+    .proof-mini strong { color: var(--accent-2); }
+    
+    .card { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+    .card h4 { margin: 0 0 6px; font-size: 12px; color: var(--accent-2); }
+    .card p, .card li { font-size: 11px; margin: 4px 0; }
+    .card ul { margin: 4px 0; padding-left: 16px; }
+    
+    .formula { background: rgba(124,58,237,0.1); padding: 4px 8px; border-radius: 4px; font-family: 'Space Grotesk', monospace; font-size: 11px; display: inline-block; margin: 4px 0; }
+    
+    @media print {
+      body { font-size: 9px; background: white !important; color: black !important; }
+      .backdrop { display: none; }
+      .ref-container { padding: 8px; }
+      .section h2 { font-size: 12px; padding: 4px 6px; background: #333 !important; }
+      .mini-table { font-size: 8px; }
+      .mini-table th { background: #eee !important; color: #333 !important; }
+      .code-mini { font-size: 8px; padding: 4px 6px; background: #f5f5f5 !important; color: #333 !important; }
+      .proof-mini { background: #f9f9f9 !important; border-left-color: #333 !important; }
+      .card { background: #fafafa !important; border-color: #ddd !important; }
+      .tag-s, .tag-u, .tag-i { border: 1px solid #999; }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop"></div>
+  
+  <div class="ref-container">
+    <a href="index.html" class="back-link"> Back to Home</a>
+    
+    <div class="ref-header">
+      <h1> Complete Algorithm Cheat Sheet</h1>
+      <p>Complexities + Pseudocode + Proofs  All in One Page</p>
+    </div>
+
+    <div class="two-col">
+      <!-- LEFT COLUMN -->
+      <div>
+        <div class="section">
+          <h2> Sorting Algorithms</h2>
+          <table class="mini-table">
+            <tr><th>Algorithm</th><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th><th>Props</th></tr>
+            <tr><td>Insertion</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>O(1)</td><td><span class="tag-s">S</span> <span class="tag-i">IP</span></td></tr>
+            <tr><td>Merge</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td><span class="tag-s">S</span></td></tr>
+            <tr><td>Quick</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td>O(log n)</td><td><span class="tag-u">U</span> <span class="tag-i">IP</span></td></tr>
+            <tr><td>Heap</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(1)</td><td><span class="tag-u">U</span> <span class="tag-i">IP</span></td></tr>
+            <tr><td>Counting</td><td colspan="3">O(n + k)</td><td>O(n+k)</td><td><span class="tag-s">S</span></td></tr>
+            <tr><td>Radix</td><td colspan="3">O(d(n + k))</td><td>O(n+k)</td><td><span class="tag-s">S</span></td></tr>
+          </table>
+          <p style="font-size:10px;color:var(--muted);">S=Stable, U=Unstable, IP=In-place. Lower bound: Ω(n log n) for comparison sorts.</p>
+          
+          <h3>Insertion Sort</h3>
+          <div class="code-mini"><span class="k">for</span> i = 2 <span class="k">to</span> n:
+    key = A[i]; j = i - 1
+    <span class="k">while</span> j > 0 <span class="k">and</span> A[j] > key:
+        A[j+1] = A[j]; j--
+    A[j+1] = key</div>
+          <div class="proof-mini"><strong>Invariant:</strong> A[1..i-1] sorted. <strong>Init:</strong> A[1..1] trivially sorted. <strong>Term:</strong> i=n+1  full array sorted.</div>
+          
+          <h3>Merge Sort</h3>
+          <div class="code-mini"><span class="f">MergeSort</span>(A, lo, hi):
+    <span class="k">if</span> lo < hi:
+        mid = (lo+hi)/2
+        <span class="f">MergeSort</span>(A, lo, mid)
+        <span class="f">MergeSort</span>(A, mid+1, hi)
+        <span class="f">Merge</span>(A, lo, mid, hi)</div>
+          <div class="proof-mini"><strong>Recurrence:</strong> T(n) = 2T(n/2) + O(n). Master Thm Case 2  O(n log n)</div>
+          
+          <h3>QuickSort & Partition</h3>
+          <div class="code-mini"><span class="f">Partition</span>(A, lo, hi):
+    pivot = A[hi]; i = lo - 1
+    <span class="k">for</span> j = lo <span class="k">to</span> hi-1:
+        <span class="k">if</span> A[j] <= pivot: i++; <span class="f">swap</span>(A[i], A[j])
+    <span class="f">swap</span>(A[i+1], A[hi]); <span class="k">return</span> i+1</div>
+          <div class="proof-mini"><strong>Invariant:</strong> A[lo..i]  pivot, A[i+1..j-1] > pivot. Worst O(n) when already sorted.</div>
+          
+          <h3>HeapSort</h3>
+          <div class="code-mini"><span class="f">HeapSort</span>(A):
+    <span class="f">BuildMaxHeap</span>(A)      <span class="c">// O(n)</span>
+    <span class="k">for</span> i = n <span class="k">downto</span> 2:
+        <span class="f">swap</span>(A[1], A[i])
+        heapsize--
+        <span class="f">MaxHeapify</span>(A, 1)   <span class="c">// O(log n)</span></div>
+        </div>
+
+        <div class="section">
+          <h2> Heap Operations</h2>
+          <table class="mini-table">
+            <tr><th>Operation</th><th>Time</th><th>Notes</th></tr>
+            <tr><td>Insert</td><td>O(log n)</td><td>Bubble up</td></tr>
+            <tr><td>Extract-Max/Min</td><td>O(log n)</td><td>Heapify down</td></tr>
+            <tr><td>Build-Heap</td><td>O(n)</td><td>Bottom-up</td></tr>
+            <tr><td>Decrease-Key</td><td>O(log n)</td><td>Bubble up</td></tr>
+            <tr><td>Peek</td><td>O(1)</td><td>Return root</td></tr>
+          </table>
+          <div class="code-mini"><span class="f">MaxHeapify</span>(A, i):
+    l = 2i; r = 2i+1; largest = i
+    <span class="k">if</span> l <= size <span class="k">and</span> A[l] > A[largest]: largest = l
+    <span class="k">if</span> r <= size <span class="k">and</span> A[r] > A[largest]: largest = r
+    <span class="k">if</span> largest != i: <span class="f">swap</span>(A[i], A[largest]); <span class="f">MaxHeapify</span>(A, largest)</div>
+          <div class="proof-mini"><strong>Build-Heap O(n):</strong> Σ(n/2^(h+1))O(h) = O(n)Σ(h/2^h) = O(n). Sum converges to 2.</div>
+          <div class="proof-mini"><strong>Parent/Child:</strong> Parent(i) = i/2, Left(i) = 2i, Right(i) = 2i+1</div>
+        </div>
+
+        <div class="section">
+          <h2> Selection Algorithms</h2>
+          <table class="mini-table">
+            <tr><th>Algorithm</th><th>Avg</th><th>Worst</th><th>Space</th></tr>
+            <tr><td>QuickSelect</td><td>O(n)</td><td>O(n)</td><td>O(1)</td></tr>
+            <tr><td>Median of Medians</td><td>O(n)</td><td>O(n)</td><td>O(log n)</td></tr>
+          </table>
+          <div class="code-mini"><span class="f">QuickSelect</span>(A, lo, hi, k):
+    p = <span class="f">Partition</span>(A, lo, hi)
+    <span class="k">if</span> k == p: <span class="k">return</span> A[p]
+    <span class="k">else if</span> k < p: <span class="k">return</span> <span class="f">QuickSelect</span>(A, lo, p-1, k)
+    <span class="k">else</span>: <span class="k">return</span> <span class="f">QuickSelect</span>(A, p+1, hi, k)</div>
+          <div class="proof-mini"><strong>MoM Guarantee:</strong> Groups of 5, median of medians gives 30-70 split  T(n)  T(n/5) + T(7n/10) + O(n) = O(n)</div>
+        </div>
+
+        <div class="section">
+          <h2> Dynamic Programming</h2>
+          <table class="mini-table">
+            <tr><th>Problem</th><th>Time</th><th>Space</th><th>Recurrence</th></tr>
+            <tr><td>LCS</td><td>O(mn)</td><td>O(mn)</td><td>match: 1+dp[i-1][j-1]</td></tr>
+            <tr><td>0/1 Knapsack</td><td>O(nW)</td><td>O(nW)</td><td>max(skip, take)</td></tr>
+            <tr><td>Matrix Chain</td><td>O(n)</td><td>O(n)</td><td>min over k splits</td></tr>
+            <tr><td>Edit Distance</td><td>O(mn)</td><td>O(mn)</td><td>min(ins, del, sub)</td></tr>
+            <tr><td>Rod Cutting</td><td>O(n)</td><td>O(n)</td><td>max(p[i]+r[n-i])</td></tr>
+          </table>
+          
+          <h3>Longest Common Subsequence</h3>
+          <div class="code-mini"><span class="k">if</span> X[i] == Y[j]: dp[i][j] = dp[i-1][j-1] + 1
+<span class="k">else</span>: dp[i][j] = max(dp[i-1][j], dp[i][j-1])</div>
+          
+          <h3>0/1 Knapsack</h3>
+          <div class="code-mini"><span class="k">for</span> i = 1 <span class="k">to</span> n:
+  <span class="k">for</span> w = 0 <span class="k">to</span> W:
+    <span class="k">if</span> wt[i] > w: dp[i][w] = dp[i-1][w]
+    <span class="k">else</span>: dp[i][w] = max(dp[i-1][w], val[i] + dp[i-1][w-wt[i]])</div>
+          
+          <h3>Matrix Chain Multiplication</h3>
+          <div class="code-mini"><span class="k">for</span> len = 2 <span class="k">to</span> n:
+  <span class="k">for</span> i = 1 <span class="k">to</span> n-len+1:
+    j = i + len - 1
+    m[i][j] = 
+    <span class="k">for</span> k = i <span class="k">to</span> j-1:
+      cost = m[i][k] + m[k+1][j] + p[i-1]*p[k]*p[j]
+      m[i][j] = min(m[i][j], cost)</div>
+          <div class="proof-mini"><strong>Optimal Substructure:</strong> Optimal solution contains optimal solutions to subproblems. Cut-and-paste proof: if subproblem not optimal, we could improve overall.</div>
+        </div>
+
+        <div class="section">
+          <h2> Greedy Algorithms</h2>
+          <table class="mini-table">
+            <tr><th>Problem</th><th>Strategy</th><th>Time</th></tr>
+            <tr><td>Activity Selection</td><td>Earliest finish</td><td>O(n log n)</td></tr>
+            <tr><td>Huffman Coding</td><td>Min freq first</td><td>O(n log n)</td></tr>
+            <tr><td>Fractional Knapsack</td><td>Max value/weight</td><td>O(n log n)</td></tr>
+          </table>
+          <div class="proof-mini"><strong>Activity Selection:</strong> Exchange arg  swap first activity in OPT with greedy choice; still valid, same size.</div>
+          <div class="proof-mini"><strong>Huffman:</strong> Two min-freq chars must be deepest siblings in optimal tree. Merge doesn't hurt optimality.</div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+        <div class="section">
+          <h2> Graph Algorithms</h2>
+          <table class="mini-table">
+            <tr><th>Algorithm</th><th>Time</th><th>Space</th><th>Notes</th></tr>
+            <tr><td>BFS</td><td>O(V+E)</td><td>O(V)</td><td>Shortest unweighted</td></tr>
+            <tr><td>DFS</td><td>O(V+E)</td><td>O(V)</td><td>Stack/recursion</td></tr>
+            <tr><td>Topo Sort</td><td>O(V+E)</td><td>O(V)</td><td>Reverse post-order</td></tr>
+            <tr><td>Dijkstra</td><td>O((V+E)log V)</td><td>O(V)</td><td>Non-neg weights</td></tr>
+            <tr><td>Bellman-Ford</td><td>O(VE)</td><td>O(V)</td><td>Handles neg weights</td></tr>
+            <tr><td>Floyd-Warshall</td><td>O(V)</td><td>O(V)</td><td>All-pairs</td></tr>
+            <tr><td>Prim</td><td>O((V+E)log V)</td><td>O(V)</td><td>MST via heap</td></tr>
+            <tr><td>Kruskal</td><td>O(E log E)</td><td>O(V)</td><td>MST via Union-Find</td></tr>
+          </table>
+          
+          <h3>BFS (Shortest Path Unweighted)</h3>
+          <div class="code-mini">dist[s] = 0; Q.enqueue(s)
+<span class="k">while</span> Q not empty:
+    u = Q.dequeue()
+    <span class="k">for</span> v in Adj[u]:
+        <span class="k">if</span> !visited[v]:
+            dist[v] = dist[u] + 1
+            visited[v] = true
+            Q.enqueue(v)</div>
+          
+          <h3>DFS (Discovery/Finish Times)</h3>
+          <div class="code-mini"><span class="f">DFS-Visit</span>(u):
+    d[u] = ++time; color[u] = GRAY
+    <span class="k">for</span> v in Adj[u]:
+        <span class="k">if</span> color[v] == WHITE: <span class="f">DFS-Visit</span>(v)
+    f[u] = ++time; color[u] = BLACK</div>
+          <div class="proof-mini"><strong>Edge Types:</strong> Tree (to WHITE), Back (to GRAY = cycle!), Forward/Cross (to BLACK)</div>
+          
+          <h3>Dijkstra's Algorithm</h3>
+          <div class="code-mini">dist[s] = 0; Q = MinHeap with all vertices
+<span class="k">while</span> Q not empty:
+    u = <span class="f">ExtractMin</span>(Q)
+    <span class="k">for</span> v in Adj[u]:
+        <span class="k">if</span> dist[u] + w(u,v) < dist[v]:
+            dist[v] = dist[u] + w(u,v)
+            <span class="f">DecreaseKey</span>(Q, v)</div>
+          <div class="proof-mini"><strong>Correctness:</strong> When u extracted, dist[u] final. Proof by contradiction: if wrong, a shorter path would have been found earlier due to non-neg weights.</div>
+          
+          <h3>Bellman-Ford (Negative Weights)</h3>
+          <div class="code-mini"><span class="k">for</span> i = 1 <span class="k">to</span> |V|-1:
+    <span class="k">for</span> (u,v) in E:
+        <span class="k">if</span> dist[u] + w(u,v) < dist[v]:
+            dist[v] = dist[u] + w(u,v)
+<span class="c">// Negative cycle detection:</span>
+<span class="k">for</span> (u,v) in E:
+    <span class="k">if</span> dist[u] + w(u,v) < dist[v]: <span class="k">return</span> "negative cycle"</div>
+          <div class="proof-mini"><strong>Why V-1 iterations?</strong> Shortest path has at most V-1 edges. Each iteration relaxes one more edge on path.</div>
+          
+          <h3>Kruskal's MST</h3>
+          <div class="code-mini">Sort edges by weight
+<span class="k">for</span> (u,v) in sorted E:
+    <span class="k">if</span> <span class="f">Find</span>(u) != <span class="f">Find</span>(v):
+        MST.add(u,v)
+        <span class="f">Union</span>(u,v)</div>
+          <div class="proof-mini"><strong>Cut Property:</strong> Min-weight edge crossing any cut is in some MST. Exchange argument proves greedy choice safe.</div>
+          
+          <h3>Topological Sort (DFS)</h3>
+          <div class="code-mini"><span class="f">TopoSort</span>(G):
+    <span class="k">for</span> each u in V: <span class="k">if</span> !visited[u]: <span class="f">DFS-Visit</span>(u)
+    <span class="k">return</span> vertices in reverse finish-time order</div>
+        </div>
+
+        <div class="section">
+          <h2> Network Flow</h2>
+          <table class="mini-table">
+            <tr><th>Algorithm</th><th>Time</th><th>Notes</th></tr>
+            <tr><td>Ford-Fulkerson</td><td>O(Emax_flow)</td><td>Pseudo-polynomial</td></tr>
+            <tr><td>Edmonds-Karp</td><td>O(VE)</td><td>BFS for aug paths</td></tr>
+          </table>
+          <div class="code-mini"><span class="k">while</span> exists augmenting path p from s to t:
+    cf = min residual capacity on p
+    <span class="k">for</span> (u,v) on p:
+        f[u,v] += cf    <span class="c">// forward edge</span>
+        f[v,u] -= cf    <span class="c">// backward edge</span></div>
+          <div class="proof-mini"><strong>Max-Flow Min-Cut:</strong> |max flow| = min cut capacity. When no augmenting path exists, vertices reachable from s form min cut.</div>
+        </div>
+
+        <div class="section">
+          <h2> Proof Techniques</h2>
+          <div class="three-col">
+            <div class="card">
+              <h4>Induction</h4>
+              <p>Base case P(1) + P(k)P(k+1)</p>
+            </div>
+            <div class="card">
+              <h4>Loop Invariant</h4>
+              <p>Init + Maintain + Terminate</p>
+            </div>
+            <div class="card">
+              <h4>Exchange Arg</h4>
+              <p>Transform OPT to greedy</p>
+            </div>
+          </div>
+          <div class="proof-mini"><strong>Comparison Sort Lower Bound:</strong> Decision tree has n! leaves  height  log(n!) = Ω(n log n)</div>
+        </div>
+
+        <div class="section">
+          <h2> Recurrences & Master Theorem</h2>
+          <div class="formula">T(n) = aT(n/b) + f(n)</div>
+          <table class="mini-table">
+            <tr><th>Case</th><th>Condition</th><th>Result</th></tr>
+            <tr><td>1</td><td>f(n) = O(n^(log_b(a) - ε))</td><td>Θ(n^log_b(a))</td></tr>
+            <tr><td>2</td><td>f(n) = Θ(n^log_b(a))</td><td>Θ(n^log_b(a)  log n)</td></tr>
+            <tr><td>3</td><td>f(n) = Ω(n^(log_b(a) + ε))</td><td>Θ(f(n))</td></tr>
+          </table>
+          <div class="proof-mini"><strong>Common:</strong> MergeSort: T(n)=2T(n/2)+n  O(n log n). Binary Search: T(n)=T(n/2)+1  O(log n)</div>
+        </div>
+
+        <div class="section">
+          <h2> Data Structures</h2>
+          <table class="mini-table">
+            <tr><th>Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th></tr>
+            <tr><td>Array</td><td>O(1)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Linked List</td><td>O(n)</td><td>O(n)</td><td>O(1)*</td><td>O(1)*</td></tr>
+            <tr><td>Hash Table</td><td></td><td>O(1)</td><td>O(1)</td><td>O(1)</td></tr>
+            <tr><td>BST (balanced)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td></tr>
+            <tr><td>Heap</td><td>O(1) max</td><td>O(n)</td><td>O(log n)</td><td>O(log n)</td></tr>
+            <tr><td>Union-Find</td><td></td><td>O(α(n))</td><td></td><td></td></tr>
+          </table>
+          <p style="font-size:10px;color:var(--muted);">* = with pointer,  = amortized/average, α(n)  constant</p>
+        </div>
+
+        <div class="section">
+          <h2> Key Formulas</h2>
+          <table class="mini-table">
+            <tr><td>Σi from 1 to n</td><td>n(n+1)/2 = O(n)</td></tr>
+            <tr><td>Σ2^i from 0 to k</td><td>2^(k+1) - 1</td></tr>
+            <tr><td>Σ(1/2^i)</td><td> 2 (converges)</td></tr>
+            <tr><td>log(n!)</td><td>Θ(n log n)</td></tr>
+            <tr><td>Harmonic: Σ(1/i)</td><td>Θ(log n)</td></tr>
+          </table>
+        </div>
+
+        <div class="section">
+          <h2> Common Pitfalls</h2>
+          <ul style="font-size:11px; padding-left:16px;">
+            <li>QuickSort worst case O(n) on sorted input</li>
+            <li>Dijkstra fails with negative edge weights</li>
+            <li>Greedy doesn't work for 0/1 Knapsack</li>
+            <li>DFS doesn't find shortest paths</li>
+            <li>Adjacency matrix: O(V) space, O(1) edge check</li>
+            <li>Adjacency list: O(V+E) space, O(degree) edge check</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
