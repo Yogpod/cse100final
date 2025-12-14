@@ -90,7 +90,74 @@
       });
   }
 
+  function formatExpectedAnswer(current) {
+    if (!current) return "";
+    const expected = current.answer;
+    const uiType = current.ui?.type ?? "text";
+
+    if (uiType === "matrix" && Array.isArray(expected) && Array.isArray(expected[0])) {
+      return expected.map((row) => (Array.isArray(row) ? row.join(" ") : String(row))).join("\n");
+    }
+
+    if (uiType === "sequence" && Array.isArray(expected)) {
+      return expected.join(", ");
+    }
+
+    if (Array.isArray(expected)) return expected[0] ?? "";
+    if (expected == null) return "";
+    return String(expected);
+  }
+
+  function renderSolutionInto(solEl, current) {
+    clearEl(solEl);
+    if (!current) return;
+
+    const expl = document.createElement("div");
+    expl.className = "solution-expl";
+    expl.textContent = current.solution ?? "";
+    solEl.appendChild(expl);
+
+    const expectedText = formatExpectedAnswer(current);
+    if (expectedText) {
+      const wrap = document.createElement("div");
+      wrap.className = "solution-expected";
+
+      const label = document.createElement("div");
+      label.className = "expected-label";
+      label.textContent = "Expected answer (what Check validates):";
+      wrap.appendChild(label);
+
+      if (expectedText.includes("\n")) {
+        const pre = document.createElement("pre");
+        pre.className = "expected-block";
+        pre.textContent = expectedText;
+        wrap.appendChild(pre);
+      } else {
+        const chip = document.createElement("span");
+        chip.className = "expected-chip";
+        chip.textContent = expectedText;
+        wrap.appendChild(chip);
+      }
+
+      solEl.appendChild(wrap);
+    }
+
+    renderMath(solEl);
+  }
+
   function renderGraphSVG(container, graph) {
+    // Prefer the bundled visualization library (canvas) when available.
+    // Falls back to the existing SVG renderer if load/init fails.
+    if (graph && window.USE_GALLES_FOR_GRAPHS !== false) {
+      try {
+        renderGraphGalles(container, graph);
+        return;
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("Galles graph renderer failed; falling back to SVG", e);
+      }
+    }
+
     clearEl(container);
     if (!graph) return;
 
@@ -178,6 +245,8 @@
       };
     }
 
+    const placedLabels = [];
+
     // Edges
     for (const e of graph.edges) {
       const u = e.u;
@@ -207,9 +276,26 @@
 
       if (e.label != null) {
         const mid = midPointOnQuad(start, ctrl, end, 0.5);
+        // Avoid overlapping labels (common for crossing/near-parallel edges) by
+        // shifting along the edge's normal vector so it stays associated to the edge.
+        const minDist = 16;
+        let lx = mid.x;
+        let ly = mid.y;
+        for (let attempt = 0; attempt < 9; attempt++) {
+          const collides = placedLabels.some((p) => Math.hypot(p.x - lx, p.y - ly) < minDist);
+          if (!collides) break;
+
+          // Offsets: 0, +12, -12, +24, -24, ... along the edge normal.
+          const step = 12 * Math.ceil(attempt / 2);
+          const sign = attempt % 2 === 1 ? 1 : -1;
+          lx = mid.x + nx * step * sign;
+          ly = mid.y + ny * step * sign;
+        }
+        placedLabels.push({ x: lx, y: ly });
+
         const text = document.createElementNS(svgNS, "text");
-        text.setAttribute("x", mid.x);
-        text.setAttribute("y", mid.y);
+        text.setAttribute("x", lx);
+        text.setAttribute("y", ly);
         text.setAttribute("text-anchor", "middle");
         text.setAttribute("dominant-baseline", "middle");
         text.setAttribute("class", "graph-label");
@@ -245,6 +331,177 @@
     }
 
     container.appendChild(svg);
+  }
+
+  function getGallesBase() {
+    const path = (location.pathname || "").replace(/\\/g, "/");
+    const nested = /\/(parts|topics)\//.test(path);
+    return `${nested ? "../" : ""}lib/`;
+  }
+
+  function loadScriptOnce(src) {
+    window.__loadedScripts = window.__loadedScripts || new Set();
+    if (window.__loadedScripts.has(src)) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = false;
+      s.onload = () => {
+        window.__loadedScripts.add(src);
+        resolve();
+      };
+      s.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function ensureGallesLoaded() {
+    if (window.__gallesReady) return;
+    const base = getGallesBase();
+
+    // Minimal dependency set for drawing circles + edges with labels.
+    const scripts = [
+      "AnimationLibrary/CustomEvents.js",
+      "AnimationLibrary/UndoFunctions.js",
+      "AnimationLibrary/AnimatedObject.js",
+      "AnimationLibrary/AnimatedLabel.js",
+      "AnimationLibrary/AnimatedCircle.js",
+      "AnimationLibrary/Line.js",
+      "AnimationLibrary/ObjectManager.js",
+      "AnimationLibrary/AnimationMain.js",
+    ].map((p) => base + p);
+
+    for (const src of scripts) {
+      // eslint-disable-next-line no-await-in-loop
+      await loadScriptOnce(src);
+    }
+
+    // Patch the library's global timeout loop so our static renders don't
+    // keep a permanent 30ms timer running.
+    if (!window.__gallesTimeoutPatched && typeof window.timeout === "function") {
+      window.__gallesTimeoutPatched = true;
+      window.__gallesTimeoutOriginal = window.timeout;
+      window.timeout = function timeoutOnce() {
+        try {
+          if (window.animationManager) window.animationManager.update();
+          if (window.objectManager) window.objectManager.draw();
+        } catch (e) {
+          // swallow
+        }
+      };
+    }
+
+    window.__gallesReady = true;
+  }
+
+  function renderGraphGalles(container, graph) {
+    clearEl(container);
+    if (!graph) return;
+
+    // Build the DOM surface the library expects.
+    const controls = document.createElement("table");
+    controls.id = "AlgorithmSpecificControls";
+    controls.style.display = "none";
+
+    const generalControlsWrap = document.createElement("div");
+    generalControlsWrap.id = "generalAnimationControlSection";
+    generalControlsWrap.style.display = "none";
+    const generalControls = document.createElement("table");
+    generalControls.id = "GeneralAnimationControls";
+    generalControlsWrap.appendChild(generalControls);
+
+    const canvasEl = document.createElement("canvas");
+    canvasEl.id = "canvas";
+    canvasEl.width = 520;
+    canvasEl.height = 320;
+    canvasEl.style.width = "100%";
+    canvasEl.style.maxWidth = "520px";
+    canvasEl.style.height = "auto";
+    canvasEl.style.display = "block";
+    canvasEl.style.margin = "0 auto";
+    // Match the SVG graph panel styling so labels remain readable.
+    canvasEl.style.background = "rgba(255, 255, 255, 1)";
+    canvasEl.style.border = "1px solid rgba(255,255,255,0.08)";
+    canvasEl.style.borderRadius = "12px";
+
+    container.appendChild(controls);
+    container.appendChild(canvasEl);
+    container.appendChild(generalControlsWrap);
+
+    // Load library scripts (async). When ready, render using its drawing engine.
+    ensureGallesLoaded()
+      .then(() => {
+        // Initialize globals the library uses.
+        window.canvas = canvasEl;
+        window.objectManager = new window.ObjectManager();
+        window.animationManager = new window.AnimationManager(window.objectManager);
+        window.objectManager.width = canvasEl.width;
+        window.objectManager.height = canvasEl.height;
+
+        const width = canvasEl.width;
+        const height = canvasEl.height;
+        const padding = 40;
+        const cx = width / 2;
+        const cy = height / 2;
+        const ringR = Math.min(width, height) / 2 - padding;
+
+        const nodes = graph.nodes || [];
+        const pos = new Map();
+        const providedPos = graph.pos || {};
+        nodes.forEach((node, idx) => {
+          const key = String(node);
+          const p = providedPos[key];
+          if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) {
+            pos.set(node, { x: p.x, y: p.y });
+            return;
+          }
+          const theta = (2 * Math.PI * idx) / nodes.length - Math.PI / 2;
+          pos.set(node, { x: cx + ringR * Math.cos(theta), y: cy + ringR * Math.sin(theta) });
+        });
+
+        const idOf = new Map(nodes.map((n, i) => [n, i]));
+
+        // Curves for bidirectional edges to avoid overlap.
+        const directedPairs = new Set();
+        for (const e of graph.edges || []) directedPairs.add(`${String(e.u)}->${String(e.v)}`);
+
+        function curveFor(u, v) {
+          if (!graph.directed) return 0;
+          const a = String(u);
+          const b = String(v);
+          const opposite = directedPairs.has(`${b}->${a}`);
+          if (!opposite) return 0;
+          return a < b ? 0.12 : -0.12;
+        }
+
+        const cmds = [];
+        for (const node of nodes) {
+          const p = pos.get(node);
+          const id = idOf.get(node);
+          cmds.push(`CreateCircle<;>${id}<;>${String(node)}<;>${p.x}<;>${p.y}`);
+        }
+
+        const directedFlag = graph.directed ? 1 : 0;
+        const edgeColor = "rgba(226, 232, 240, 0.55)";
+        for (const e of graph.edges || []) {
+          const uId = idOf.get(e.u);
+          const vId = idOf.get(e.v);
+          if (uId == null || vId == null) continue;
+          const label = e.label == null ? "" : String(e.label);
+          const curve = curveFor(e.u, e.v);
+          cmds.push(`Connect<;>${uId}<;>${vId}<;>${edgeColor}<;>${curve}<;>${directedFlag}<;>${label}`);
+        }
+
+        window.animationManager.StartNewAnimation(cmds);
+        // Fast-forward to the end state and draw once.
+        if (typeof window.animationManager.skipForward === "function") window.animationManager.skipForward();
+        if (window.objectManager) window.objectManager.draw();
+        if (window.timer) clearTimeout(window.timer);
+      })
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.warn("Failed to initialize Galles renderer", e);
+      });
   }
 
   function renderAnswerWidget(container, legacyInput, ui) {
@@ -316,6 +573,21 @@
     const toggle = qs("#nav-toggle");
     const links = qs("#nav-links");
     if (!toggle || !links) return;
+
+    // Add a single consistent entry-point to the bundled visualization library.
+    const existingViz = Array.from(links.querySelectorAll("a")).some((a) => {
+      const href = a.getAttribute("href") || "";
+      return href.includes("alg/") && href.includes("Algorithms.html");
+    });
+    if (!existingViz) {
+      const path = (location.pathname || "").replace(/\\/g, "/");
+      const nested = /\/(parts|topics)\//.test(path);
+      const a = document.createElement("a");
+      a.textContent = "Visualizations";
+      a.href = `${nested ? "../" : ""}alg/release1.4/Algorithms.html`;
+      links.appendChild(a);
+    }
+
     toggle.addEventListener("click", () => links.classList.toggle("open"));
     qsa("a", links).forEach((a) => a.addEventListener("click", () => links.classList.remove("open")));
   }
@@ -377,7 +649,7 @@
       renderMath(promptEl);
       reader = renderAnswerWidget(answerArea, legacyAnswer, current.ui);
       const solEl = qs("#solution");
-      solEl.textContent = "";
+      clearEl(solEl);
       solEl.classList.add("hidden");
       setStatus("", null);
       if (typeof reader?.focus === "function") reader.focus();
@@ -387,9 +659,8 @@
     function reveal() {
       if (!current) return;
       const solEl = qs("#solution");
-      solEl.textContent = current.solution;
+      renderSolutionInto(solEl, current);
       solEl.classList.remove("hidden");
-      renderMath(solEl);
     }
 
     function check() {

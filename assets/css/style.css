@@ -302,6 +302,39 @@ a {
   white-space: pre-wrap;
 }
 
+.solution-expected {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.expected-label {
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.expected-chip {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--accent-2);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.expected-block {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--accent-2);
+  color: var(--text);
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 .viz {
   margin: 0 0 12px;
 }

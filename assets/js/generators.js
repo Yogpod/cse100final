@@ -276,6 +276,217 @@
     return dist;
   }
 
+  function dijkstraWithParent(n, edges, start) {
+    const adj = buildAdjList(n, edges, true);
+    const dist = Array(n).fill(Infinity);
+    const parent = Array(n).fill(-1);
+    dist[start] = 0;
+    parent[start] = start;
+    const used = Array(n).fill(false);
+
+    for (let iter = 0; iter < n; iter++) {
+      let u = -1;
+      let best = Infinity;
+      for (let i = 0; i < n; i++) {
+        if (!used[i] && dist[i] < best) {
+          best = dist[i];
+          u = i;
+        }
+      }
+      if (u === -1) break;
+      used[u] = true;
+      for (const [v, w] of adj[u]) {
+        if (dist[u] + w < dist[v]) {
+          dist[v] = dist[u] + w;
+          parent[v] = u;
+        }
+      }
+    }
+    return { dist, parent };
+  }
+
+  function topologicalSort(n, edges) {
+    const adj = buildAdjList(n, edges, true).map((lst) => lst.map(([v]) => v));
+    const visited = new Array(n).fill(false);
+    const stack = [];
+    function dfs(u) {
+      visited[u] = true;
+      for (const v of adj[u]) {
+        if (!visited[v]) dfs(v);
+      }
+      stack.push(u);
+    }
+    for (let i = 0; i < n; i++) {
+      if (!visited[i]) dfs(i);
+    }
+    return stack.reverse();
+  }
+
+  function getSCCs(n, edges) {
+    const adj = buildAdjList(n, edges, true).map((lst) => lst.map(([v]) => v));
+    const revAdj = Array.from({ length: n }, () => []);
+    for (const [u, v] of edges) revAdj[v].push(u);
+
+    const visited = new Array(n).fill(false);
+    const stack = [];
+    function dfs1(u) {
+      visited[u] = true;
+      for (const v of adj[u]) {
+        if (!visited[v]) dfs1(v);
+      }
+      stack.push(u);
+    }
+    for (let i = 0; i < n; i++) {
+      if (!visited[i]) dfs1(i);
+    }
+
+    const sccs = [];
+    visited.fill(false);
+    function dfs2(u, component) {
+      visited[u] = true;
+      component.push(u);
+      for (const v of revAdj[u]) {
+        if (!visited[v]) dfs2(v, component);
+      }
+    }
+
+    while (stack.length) {
+      const u = stack.pop();
+      if (!visited[u]) {
+        const component = [];
+        dfs2(u, component);
+        component.sort((a, b) => a - b);
+        sccs.push(component);
+      }
+    }
+    sccs.sort((a, b) => a[0] - b[0]);
+    return sccs;
+  }
+
+  function bellmanFord(n, edges, start, k) {
+    const dist = Array(n).fill(Infinity);
+    dist[start] = 0;
+    for (let i = 0; i < k; i++) {
+      for (const [u, v, w] of edges) {
+        if (dist[u] !== Infinity && dist[u] + w < dist[v]) {
+          dist[v] = dist[u] + w;
+        }
+      }
+    }
+    return dist;
+  }
+
+  function dijkstraDequeueOrder(n, edges, start) {
+    const adj = buildAdjList(n, edges, true);
+    const dist = Array(n).fill(Infinity);
+    dist[start] = 0;
+    const used = Array(n).fill(false);
+    const order = [];
+
+    for (let iter = 0; iter < n; iter++) {
+      let u = -1;
+      let best = Infinity;
+      for (let i = 0; i < n; i++) {
+        if (!used[i] && dist[i] < best) {
+          best = dist[i];
+          u = i;
+        }
+      }
+      if (u === -1) break;
+      used[u] = true;
+      order.push(u);
+      for (const [v, w] of adj[u]) {
+        if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;
+      }
+    }
+    return order;
+  }
+
+  function makeDijkstraRelaxationScenario(n, edges, start) {
+    const adj = buildAdjList(n, edges, true);
+    const dist = Array(n).fill(Infinity);
+    dist[start] = 0;
+    const used = Array(n).fill(false);
+
+    for (let iter = 0; iter < n; iter++) {
+      let u = -1;
+      let best = Infinity;
+      for (let i = 0; i < n; i++) {
+        if (!used[i] && dist[i] < best) {
+          best = dist[i];
+          u = i;
+        }
+      }
+      if (u === -1) break;
+      used[u] = true;
+
+      // Choose an edge whose relaxation actually improves something.
+      const improvable = [];
+      for (const [v, w] of adj[u]) {
+        if (dist[u] + w < dist[v]) improvable.push([u, v, w]);
+      }
+      if (improvable.length) {
+        const [uu, vv, ww] = sample(improvable);
+        return {
+          u: uu,
+          v: vv,
+          w: ww,
+          distU: dist[uu],
+          distVBefore: dist[vv],
+          distVAfter: dist[uu] + ww,
+        };
+      }
+
+      // Otherwise continue standard Dijkstra relaxation.
+      for (const [v, w] of adj[u]) {
+        if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;
+      }
+    }
+
+    return null;
+  }
+
+  function dfsTimesAndParents(n, edges) {
+    const adj = buildAdjList(n, edges, true).map((lst) => lst.map(([v]) => v));
+    for (const list of adj) list.sort((a, b) => a - b);
+
+    const color = Array(n).fill(0); // 0=white,1=gray,2=black
+    const d = Array(n).fill(-1);
+    const f = Array(n).fill(-1);
+    const parent = Array(n).fill(-1);
+    let time = 0;
+
+    function dfsVisit(u) {
+      color[u] = 1;
+      d[u] = ++time;
+      for (const v of adj[u]) {
+        if (color[v] === 0) {
+          parent[v] = u;
+          dfsVisit(v);
+        }
+      }
+      color[u] = 2;
+      f[u] = ++time;
+    }
+
+    for (let u = 0; u < n; u++) {
+      if (color[u] === 0) {
+        parent[u] = u;
+        dfsVisit(u);
+      }
+    }
+    return { d, f, parent };
+  }
+
+  function classifyDFSEdge(u, v, d, f, parent) {
+    if (parent[v] === u) return "tree";
+    const uAncV = d[u] < d[v] && f[v] < f[u];
+    const vAncU = d[v] < d[u] && f[u] < f[v];
+    if (vAncU) return "back";
+    if (uAncV) return "forward";
+    return "cross";
+  }
+
   function kruskalMST(n, edges) {
     const parent = Array.from({ length: n }, (_, i) => i);
     const rank = Array(n).fill(0);
@@ -308,6 +519,85 @@
     return weight;
   }
 
+  function kruskalMSTOrder(n, edges) {
+    const parent = Array.from({ length: n }, (_, i) => i);
+    const rank = Array(n).fill(0);
+    function find(x) {
+      while (parent[x] !== x) {
+        parent[x] = parent[parent[x]];
+        x = parent[x];
+      }
+      return x;
+    }
+    function union(a, b) {
+      a = find(a);
+      b = find(b);
+      if (a === b) return false;
+      if (rank[a] < rank[b]) [a, b] = [b, a];
+      parent[b] = a;
+      if (rank[a] === rank[b]) rank[a]++;
+      return true;
+    }
+
+    const sorted = edges
+      .slice()
+      .map(([u, v, w]) => [Math.min(u, v), Math.max(u, v), w])
+      .sort((x, y) => x[2] - y[2] || x[0] - y[0] || x[1] - y[1]);
+
+    const picked = [];
+    for (const [u, v, w] of sorted) {
+      if (union(u, v)) {
+        picked.push([u, v, w]);
+        if (picked.length === n - 1) break;
+      }
+    }
+    return picked;
+  }
+
+  function primMSTOrder(n, edges, start) {
+    const adj = Array.from({ length: n }, () => []);
+    for (const [u0, v0, w] of edges) {
+      const u = Math.min(u0, v0);
+      const v = Math.max(u0, v0);
+      adj[u].push([v, w]);
+      adj[v].push([u, w]);
+    }
+    for (const list of adj) list.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+
+    const inTree = Array(n).fill(false);
+    inTree[start] = true;
+    const picked = [];
+
+    while (picked.length < n - 1) {
+      let bestW = Infinity;
+      let bestA = Infinity;
+      let bestB = Infinity;
+      let found = false;
+
+      for (let u = 0; u < n; u++) {
+        if (!inTree[u]) continue;
+        for (const [v, w] of adj[u]) {
+          if (inTree[v]) continue;
+          const a = Math.min(u, v);
+          const b = Math.max(u, v);
+          if (w < bestW || (w === bestW && (a < bestA || (a === bestA && b < bestB)))) {
+            bestW = w;
+            bestA = a;
+            bestB = b;
+            found = true;
+          }
+        }
+      }
+
+      if (!found) break;
+      // Mark only the vertex not yet in tree
+      if (!inTree[bestA]) inTree[bestA] = true;
+      if (!inTree[bestB]) inTree[bestB] = true;
+      picked.push([bestA, bestB, bestW]);
+    }
+    return picked;
+  }
+
   function lcsLen(a, b) {
     const n = a.length;
     const m = b.length;
@@ -319,6 +609,44 @@
       }
     }
     return dp[n][m];
+  }
+
+  function lcsOneString(a, b) {
+    const n = a.length;
+    const m = b.length;
+    const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= m; j++) {
+        if (a[i - 1] === b[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+        else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+
+    // Deterministic backtrack: prefer moving up on ties.
+    let i = n;
+    let j = m;
+    const out = [];
+    while (i > 0 && j > 0) {
+      if (a[i - 1] === b[j - 1]) {
+        out.push(a[i - 1]);
+        i--;
+        j--;
+      } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+        i--;
+      } else {
+        j--;
+      }
+    }
+    out.reverse();
+    return { dp, str: out.join("") };
+  }
+
+  function isSubsequence(sub, s) {
+    let i = 0;
+    for (let j = 0; j < s.length && i < sub.length; j++) {
+      if (sub[i] === s[j]) i++;
+    }
+    return i === sub.length;
   }
 
   function knapsack01(items, cap) {
@@ -362,6 +690,93 @@
       flow += add;
     }
     return flow;
+  }
+
+  function edmondsKarpWithMinCut(n, edges, s, t) {
+    const cap = Array.from({ length: n }, () => Array(n).fill(0));
+    for (const [u, v, c] of edges) cap[u][v] += c;
+
+    let flow = 0;
+    while (true) {
+      const parent = Array(n).fill(-1);
+      parent[s] = s;
+      const q = [s];
+      while (q.length && parent[t] === -1) {
+        const u = q.shift();
+        for (let v = 0; v < n; v++) {
+          if (parent[v] === -1 && cap[u][v] > 0) {
+            parent[v] = u;
+            q.push(v);
+          }
+        }
+      }
+      if (parent[t] === -1) break;
+
+      let add = Infinity;
+      for (let v = t; v !== s; v = parent[v]) {
+        add = Math.min(add, cap[parent[v]][v]);
+      }
+      for (let v = t; v !== s; v = parent[v]) {
+        const u = parent[v];
+        cap[u][v] -= add;
+        cap[v][u] += add;
+      }
+      flow += add;
+    }
+
+    // S side of the min-cut: vertices reachable from s in final residual graph.
+    const seen = Array(n).fill(false);
+    const q = [s];
+    seen[s] = true;
+    while (q.length) {
+      const u = q.shift();
+      for (let v = 0; v < n; v++) {
+        if (!seen[v] && cap[u][v] > 0) {
+          seen[v] = true;
+          q.push(v);
+        }
+      }
+    }
+    const cutS = [];
+    for (let i = 0; i < n; i++) if (seen[i]) cutS.push(i);
+
+    return { flow, cutS };
+  }
+
+  function firstEdmondsKarpAugmentation(n, edges, s, t) {
+    const cap = Array.from({ length: n }, () => Array(n).fill(0));
+    for (const [u, v, c] of edges) cap[u][v] += c;
+
+    const parent = Array(n).fill(-1);
+    parent[s] = s;
+    const q = [s];
+    while (q.length && parent[t] === -1) {
+      const u = q.shift();
+      for (let v = 0; v < n; v++) {
+        if (parent[v] === -1 && cap[u][v] > 0) {
+          parent[v] = u;
+          q.push(v);
+        }
+      }
+    }
+    if (parent[t] === -1) return null;
+
+    const path = [];
+    let add = Infinity;
+    for (let v = t; v !== s; v = parent[v]) {
+      const u = parent[v];
+      path.push([u, v]);
+      add = Math.min(add, cap[u][v]);
+    }
+    path.reverse();
+
+    for (const [u, v] of path) {
+      cap[u][v] -= add;
+      cap[v][u] += add;
+    }
+
+    const residuals = path.map(([u, v]) => ({ u, v, fwd: cap[u][v], back: cap[v][u] }));
+    return { path, add, residuals };
   }
 
   // ===== Topic generators =====
@@ -439,10 +854,40 @@
   }
 
   function genRecurrences() {
+    const type = sample(["master", "tree_count", "tree_size"]);
     const b = sample([2, 3, 4]);
     const k = sample([1, 2, 3]);
     const a = Math.pow(b, k);
     const d = sample([0, 1, 2, 3]);
+
+    if (type === "tree_count") {
+      const i = randInt(0, 5);
+      const prompt = `Recursion tree: for T(n) = ${a}T(n/${b}) + Θ(n^${d}), how many subproblems are there at level i=${i}?`;
+      const ans = Math.pow(a, i);
+      return {
+        prompt,
+        answer: [String(ans)],
+        check: (user) => normalize(user) === String(ans),
+        solution: `1) Each subproblem branches into $a=${a}$ subproblems.
+2) Level 0 has $1=a^0$ subproblem.
+3) Therefore level $i$ has $a^i=${a}^${i}=${ans}$ subproblems.`,
+      };
+    }
+
+    if (type === "tree_size") {
+      const i = randInt(0, 6);
+      const denom = Math.pow(b, i);
+      const ans = i === 0 ? "n" : `n/${denom}`;
+      const prompt = `Recursion tree: for T(n) = ${a}T(n/${b}) + Θ(n^${d}), what is the size of each subproblem at level i=${i}? Answer like "${ans}".`;
+      return {
+        prompt,
+        answer: [ans, ans.replace(/\s+/g, "")],
+        check: (user) => normalize(user).replace(/\s+/g, "") === ans.replace(/\s+/g, ""),
+        solution: `1) Each level divides the input size by $b=${b}$.
+2) Level 0 size is $n$.
+3) After $i$ levels, size is $n/b^i = n/${denom}$.`,
+      };
+    }
 
     const prompt = `Use the Master Theorem on: T(n) = ${a} T(n/${b}) + Θ(n^${d}). Give the asymptotic bound as either "n^k", "n^d log n", or "n^d".`;
 
@@ -474,6 +919,90 @@
         return u === a1;
       },
       solution: sol,
+    };
+  }
+
+  function genInduction() {
+    const type = sample(["steps", "hypothesis"]);
+
+    if (type === "hypothesis") {
+      const prompt = `Induction: what do you assume in the inductive hypothesis? Answer like "Assume P(k) holds".`;
+      return {
+        prompt,
+        answer: ["Assume P(k) holds", "assume p(k)", "p(k)"],
+        check: (user) => {
+          const u = normalize(user);
+          return u.includes("p(k)") && (u.includes("assume") || u.includes("hypothesis"));
+        },
+        solution: `1) Choose an arbitrary $k\ge n_0$.
+2) The inductive hypothesis assumes the statement is true for $n=k$.
+3) In symbols: assume $P(k)$ holds.`,
+      };
+    }
+
+    const prompt = `Induction: enter the standard 4 steps in order.`;
+    const expected = ["base case", "inductive hypothesis", "inductive step", "conclusion"];
+    const allowed = [
+      ["base", "base case"],
+      ["inductive hypothesis", "hypothesis", "ih"],
+      ["inductive step", "step"],
+      ["conclusion", "therefore"],
+    ];
+
+    return {
+      prompt,
+      ui: { type: "sequence", length: 4 },
+      answer: expected,
+      check: (user) => {
+        if (!Array.isArray(user) || user.length !== 4) return false;
+        for (let i = 0; i < 4; i++) {
+          const u = normalize(user[i]);
+          if (!allowed[i].some((opt) => u === opt || u.includes(opt))) return false;
+        }
+        return true;
+      },
+      solution: `1) Base case: prove $P(n_0)$.
+2) Inductive hypothesis: assume $P(k)$ for an arbitrary $k\ge n_0$.
+3) Inductive step: prove $P(k)\Rightarrow P(k+1)$.
+4) Conclusion: therefore $P(n)$ holds for all $n\ge n_0$.`,
+    };
+  }
+
+  function matrixChainMinCost(p) {
+    const n = p.length - 1;
+    const m = Array.from({ length: n }, () => Array(n).fill(0));
+    for (let len = 2; len <= n; len++) {
+      for (let i = 0; i + len - 1 < n; i++) {
+        const j = i + len - 1;
+        let best = Infinity;
+        for (let k = i; k < j; k++) {
+          const cost = m[i][k] + m[k + 1][j] + p[i] * p[k + 1] * p[j + 1];
+          if (cost < best) best = cost;
+        }
+        m[i][j] = best;
+      }
+    }
+    return m[0][n - 1];
+  }
+
+  function genMatrixChain() {
+    const n = sample([3, 4, 5]);
+    const p = Array.from({ length: n + 1 }, () => randInt(2, 10));
+    const dims = [];
+    for (let i = 1; i <= n; i++) dims.push(`A_${i}: ${p[i - 1]}×${p[i]}`);
+
+    const ans = matrixChainMinCost(p);
+    const prompt = `Matrix Chain Multiplication: ${dims.join(", ")}. What is the minimum number of scalar multiplications?`;
+
+    return {
+      prompt,
+      answer: [String(ans)],
+      check: (user) => normalize(user) === String(ans),
+      solution: `1) Let $m[i][j]$ be the minimum cost to compute $A_i\cdots A_j$.
+2) Base: $m[i][i]=0$.
+3) Transition: $m[i][j]=\min_{i\le k<j}(m[i][k]+m[k+1][j]+p_{i-1}p_k p_j)$.
+4) Fill by increasing chain length.
+5) The optimal cost for $A_1\cdots A_${n}$ is ${ans}.`,
     };
   }
 
@@ -627,6 +1156,42 @@
   }
 
   function genGraphReps() {
+    const type = sample(["space", "dir"]);
+
+    if (type === "dir") {
+      const isDirected = Math.random() < 0.5;
+      const nodes = [0, 1, 2, 3, 4];
+
+      let edges;
+      let pos;
+      if (isDirected) {
+        const dag = makeReadableDAG(5);
+        edges = dag.edges.map(([u, v]) => [u, v]);
+        pos = dag.pos;
+      } else {
+        const ug = makeReadableUndirectedWeightedGraph();
+        edges = ug.edges.map(([u, v]) => [u, v]);
+        pos = ug.pos;
+      }
+
+      const prompt = `Is the graph directed or undirected? Answer "directed" or "undirected".`;
+      const ans = isDirected ? "directed" : "undirected";
+      return {
+        prompt,
+        visual: {
+          graph: {
+            directed: isDirected,
+            nodes,
+            pos,
+            edges: edges.map(([u, v]) => ({ u, v })),
+          },
+        },
+        answer: [ans],
+        check: (user) => eqAnswer(user, ans),
+        solution: `1) Directed graphs have arrows on edges.\n2) Undirected graphs have edges without direction.\n3) This graph is ${ans}.`,
+      };
+    }
+
     const V = sample([10, 50, 100, 1000]);
     const E = sample([V - 1, V, 2 * V, V * 10]);
     const prompt = `Graph storage: for V=${V}, E=${E} (sparse), which representation is usually better for space? Answer "matrix" or "list".`;
@@ -647,7 +1212,10 @@
 
     const mode = sample(["bfs", "dfs"]);
     const start = 0;
-    const prompt = `${mode.toUpperCase()} order (neighbors visited in increasing numeric order). Starting at ${start}, enter the visitation order.`;
+    const prompt =
+      mode === "bfs"
+        ? `BFS traversal: explore outgoing neighbors in increasing numeric order. Starting at ${start}, list vertices in the order they are DEQUEUED (removed from the queue).`
+        : `DFS traversal: explore outgoing neighbors in increasing numeric order. Starting at ${start}, list vertices in the order they are FIRST DISCOVERED (preorder).`;
 
     const order = mode === "bfs" ? bfsOrder(n, edges, start) : dfsOrder(n, edges, start);
     const expected = order.map(String);
@@ -670,8 +1238,8 @@
   }
 
   function genDFSApps() {
-    // Keep this as a quick conceptual check to avoid heavy graph parsing.
-    const type = sample(["topo", "scc"]);
+    // Mix conceptual + mechanical tracing.
+    const type = sample(["topo", "topoproof", "times", "edgetypes", "kosaraju", "toposort", "scc_list"]);
     if (type === "topo") {
       const prompt = `Topological sort works only on which kind of graph? Answer "DAG" or "has cycles".`;
       return {
@@ -679,6 +1247,173 @@
         answer: ["dag"],
         check: (user) => eqAnswer(user, "dag"),
         solution: `1) If a directed cycle exists, no linear order can place every edge forward.\n2) If the graph is acyclic, DFS/Kahn produces an order.\n3) Therefore topo sort works only for a DAG.`,
+      };
+    }
+
+    if (type === "topoproof") {
+      const prompt = `Topo correctness (DFS finish times): for every directed edge (u,v) in a DAG, which relation holds? Answer "f[u] > f[v]" or "f[u] < f[v]".`;
+      return {
+        prompt,
+        answer: ["f[u] > f[v]", "f[u]>f[v]"],
+        check: (user) => normalize(user).replace(/\s+/g, "") === "f[u]>f[v]",
+        solution: `1) In a DAG, DFS cannot encounter a back edge.
+2) For any edge $(u,v)$, DFS finishes $v$ before finishing $u$.
+3) Therefore $f[u] > f[v]$ and sorting by decreasing finish time is a topological order.`,
+      };
+    }
+
+    if (type === "toposort") {
+      const g = makeReadableDAG(6);
+      const n = g.nodes.length;
+      const edges = g.edges;
+      const expected = topologicalSort(n, edges);
+      const prompt = `Topological Sort: list the vertices in a valid topological order (comma-separated).`;
+      return {
+        prompt,
+        ui: { type: "sequence", length: n },
+        visual: {
+          graph: {
+            directed: true,
+            nodes: g.nodes,
+            pos: g.pos,
+            edges: edges.map(([u, v]) => ({ u, v })),
+          },
+        },
+        answer: expected.map(String),
+        check: (user) => {
+          if (!Array.isArray(user) || user.length !== n) return false;
+          const uMap = new Map();
+          user.forEach((u, i) => uMap.set(normalize(u), i));
+          for (let i = 0; i < n; i++) if (!uMap.has(String(i))) return false;
+          for (const [u, v] of edges) {
+            if (uMap.get(String(u)) > uMap.get(String(v))) return false;
+          }
+          return true;
+        },
+        solution: `1) Perform DFS.
+2) When a vertex finishes (turns black), push it onto a stack.
+3) Pop stack to get topological order.
+4) One valid order: ${expected.join(", ")}.`,
+      };
+    }
+
+    if (type === "scc_list") {
+      const nodes = [0, 1, 2, 3, 4, 5];
+      const pos = gridPositions(nodes, 3);
+      // Create a graph with non-trivial SCCs
+      const edges = [
+        [0, 1, 1], [1, 3, 1], [3, 0, 1], // SCC {0,1,3}
+        [0, 2, 1], [1, 2, 1],            // Cross edges
+        [2, 4, 1],                       // Cross edge
+        [4, 5, 1], [5, 4, 1]             // SCC {4,5}
+      ];
+      // Randomize weights
+      edges.forEach(e => e[2] = randInt(1, 9));
+      
+      const n = nodes.length;
+      const sccs = getSCCs(n, edges);
+      const expected = sccs.map((c) => c.join(",")).join("; ");
+      const prompt = `Strongly Connected Components: list the SCCs. Enter each component as comma-separated vertices, and separate components with semicolons (e.g. "0,1,2; 3; 4,5"). Order of components doesn't matter.`;
+      
+      return {
+        prompt,
+        visual: {
+          graph: {
+            directed: true,
+            nodes,
+            pos,
+            edges: edges.map(([u, v, w]) => ({ u, v, label: w })),
+          },
+        },
+        answer: [expected],
+        check: (user) => {
+          const uStr = normalize(user).replace(/\s+/g, "");
+          const uComps = uStr.split(";").map(s => s.split(",").map(Number).sort((a, b) => a - b).join(",")).sort();
+          const eComps = sccs.map(c => c.join(",")).sort();
+          if (uComps.length !== eComps.length) return false;
+          for (let i = 0; i < uComps.length; i++) {
+            if (uComps[i] !== eComps[i]) return false;
+          }
+          return true;
+        },
+        solution: `1) Run Kosaraju's or Tarjan's algorithm.
+2) The SCCs are: ${sccs.map(c => `{${c.join(",")}}`).join(", ")}.`,
+      };
+    }
+
+    if (type === "times" || type === "edgetypes") {
+      const n = 6;
+      const nodes = [0, 1, 2, 3, 4, 5];
+      const pos = gridPositions(nodes, 3);
+      // A small directed graph that produces non-trivial DFS times/edge types.
+      const edges = [
+        [0, 1],
+        [0, 2],
+        [1, 3],
+        [2, 3],
+        [3, 1],
+        [2, 4],
+        [4, 5],
+        [5, 2],
+      ];
+
+      const { d, f, parent } = dfsTimesAndParents(n, edges);
+
+      if (type === "times") {
+        const expected = nodes.map((u) => [String(d[u]), String(f[u])]);
+        return {
+          prompt: `Run DFS (visit vertices in increasing numeric order; explore neighbors in increasing order). Fill discovery/finish times for each vertex 0..${n - 1} as an ${n}×2 table [d,f].`,
+          ui: { type: "matrix", rows: n, cols: 2 },
+          visual: {
+            graph: {
+              directed: true,
+              nodes,
+              pos,
+              edges: edges.map(([u, v]) => ({ u, v })),
+            },
+          },
+          answer: expected,
+          check: (user) => matrixEq(user, expected),
+          solution: `1) Use global time counter.
+2) When a vertex is first discovered: set $d[u]=++time$.
+3) After exploring all outgoing edges: set $f[u]=++time$.
+4) Times (rows are vertices 0..${n - 1}, cols are [d,f]):
+${formatMatrix(expected)}.`,
+        };
+      }
+
+      const edgeList = edges.map(([u, v]) => ({ u, v }));
+      const expectedTypes = edgeList.map(({ u, v }) => classifyDFSEdge(u, v, d, f, parent));
+      const expected = expectedTypes.map(String);
+      const prompt = `DFS edge labeling (same DFS ordering). For each edge in order: ${edgeList
+        .map((e) => `${e.u}->${e.v}`)
+        .join(", ")}, label it as tree/back/forward/cross.`;
+      return {
+        prompt,
+        ui: { type: "sequence", length: expected.length },
+        visual: {
+          graph: {
+            directed: true,
+            nodes,
+            pos,
+            edges: edgeList,
+          },
+        },
+        answer: expected,
+        check: (user) => {
+          if (!Array.isArray(user) || user.length !== expected.length) return false;
+          for (let i = 0; i < expected.length; i++) {
+            const u = normalize(user[i]);
+            const e = expected[i];
+            if (u !== e && !u.startsWith(e[0])) return false;
+          }
+          return true;
+        },
+        solution: `1) Tree if it discovers a white vertex.
+2) Back if it goes to an ancestor.
+3) Forward if it goes to a descendant (non-tree).
+4) Cross otherwise.
+5) Labels for the listed edges: ${expectedTypes.join(", ")}.`,
       };
     }
 
@@ -692,14 +1427,75 @@
   }
 
   function genShortestPaths() {
-    const type = sample(["dijkstra", "neg"]);
+    const type = sample(["distance", "path", "relax", "choose", "neg", "dequeue", "bellman"]);
+
+    if (type === "bellman") {
+      const g = makeReadableWeightedDigraph();
+      const n = g.nodes.length;
+      const edges = g.edges;
+      const s = 0;
+      const t = 5;
+      const k = randInt(2, n - 1);
+      const dist = bellmanFord(n, edges, s, k);
+      const expected = dist.map((d) => (d === Infinity ? "inf" : String(d)));
+      const prompt = `Run Bellman-Ford from s=${s} for ${k} iterations (relax all edges ${k} times). Enter the distance array (use "inf" for infinity).`;
+      return {
+        prompt,
+        ui: { type: "sequence", length: n },
+        visual: {
+          graph: {
+            directed: true,
+            start: s,
+            target: t,
+            nodes: g.nodes,
+            pos: g.pos,
+            edges: edges.map(([u, v, w]) => ({ u, v, label: w })),
+          },
+        },
+        answer: expected,
+        check: (user) => {
+          if (!Array.isArray(user) || user.length !== n) return false;
+          for (let i = 0; i < n; i++) {
+            const u = normalize(user[i]);
+            const e = expected[i];
+            if (u !== e && !(u === "infinity" && e === "inf")) return false;
+          }
+          return true;
+        },
+        solution: `1) Initialize $d[${s}]=0$, others $\infty$.
+2) In each iteration, relax all edges $(u,v)$ with weight $w$: $d[v] = \min(d[v], d[u] + w)$.
+3) After ${k} iterations (note: full Bellman-Ford runs $V-1=${n-1}$ iterations), distances are: ${expected.join(", ")}.
+4) These may not be final shortest paths if ${k} < ${n-1}.`,
+      };
+    }
+
+    if (type === "choose") {
+      const hasNegativeEdge = Math.random() < 0.5;
+      const prompt = `Single-source shortest paths: choose the correct algorithm. ${
+        hasNegativeEdge
+          ? "The graph has a negative-weight edge (but no negative cycles)."
+          : "All edge weights are nonnegative."
+      } Answer "dijkstra" or "bellman-ford".`;
+      const ans = hasNegativeEdge ? "bellman-ford" : "dijkstra";
+      return {
+        prompt,
+        answer: [ans, ans.replace(/\s+/g, "")],
+        check: (user) => eqAnswer(user, ans),
+        solution: `1) Dijkstra requires all edge weights to be nonnegative.
+2) Bellman–Ford handles negative edges (and can detect negative cycles).
+3) Therefore the correct choice here is ${ans}.`,
+      };
+    }
+
     if (type === "neg") {
       const prompt = `Can Dijkstra's algorithm be used if the graph has a negative-weight edge? Answer yes/no.`;
       return {
         prompt,
         answer: ["no"],
         check: (user) => eqAnswer(user, "no"),
-        solution: `1) Dijkstra assumes once a node is extracted (smallest tentative distance), its distance is final.\n2) A negative edge can later reduce a "final" distance via an alternate path.\n3) So Dijkstra is not valid with negative-weight edges.`,
+        solution: `1) Dijkstra assumes once a node is extracted (smallest tentative distance), its distance is final.
+2) A negative edge can later reduce a "final" distance via an alternate path.
+3) So Dijkstra is not valid with negative-weight edges.`,
       };
     }
 
@@ -708,6 +1504,113 @@
     const edges = g.edges;
     const s = 0;
     const t = 5;
+
+    if (type === "dequeue") {
+      const order = dijkstraDequeueOrder(n, edges, s);
+      const expected = order.map(String);
+      const prompt = `Run Dijkstra from s=${s} (visit/dequeue the smallest tentative distance each step). List the order vertices are dequeued/settled.`;
+      return {
+        prompt,
+        ui: { type: "sequence", length: expected.length },
+        visual: {
+          graph: {
+            directed: true,
+            start: s,
+            target: t,
+            nodes: g.nodes,
+            pos: g.pos,
+            edges: edges.map(([u, v, w]) => ({ u, v, label: w })),
+          },
+        },
+        answer: expected,
+        check: (user) => Array.isArray(user) && user.map((x) => normalize(x)).join(",") === expected.join(","),
+        solution: `1) Initialize $d[${s}]=0$, others $=\infty$.
+2) Repeatedly pick the unvisited vertex with smallest $d[\cdot]$ and mark it settled.
+3) The dequeue/settle order here is: ${expected.join(" ")}.`,
+      };
+    }
+
+    if (type === "relax") {
+      let scenario = null;
+      // A few retries in case the random graph doesn't produce an improvable relaxation.
+      for (let tries = 0; tries < 8 && !scenario; tries++) {
+        const gg = tries === 0 ? g : makeReadableWeightedDigraph();
+        scenario = makeDijkstraRelaxationScenario(gg.nodes.length, gg.edges, s);
+        if (scenario) {
+          return {
+            prompt: `Dijkstra relaxation: suppose currently d[${scenario.u}]=${scenario.distU} and d[${scenario.v}] is ${
+              scenario.distVBefore === Infinity ? "∞" : scenario.distVBefore
+            }. After relaxing edge (${scenario.u}→${scenario.v}) with weight ${scenario.w}, what is the new d[${scenario.v}]?`,
+            visual: {
+              graph: {
+                directed: true,
+                start: s,
+                target: t,
+                nodes: gg.nodes,
+                pos: gg.pos,
+                edges: gg.edges.map(([u, v, w]) => ({ u, v, label: w })),
+              },
+            },
+            answer: [String(scenario.distVAfter)],
+            check: (user) => normalize(user) === String(scenario.distVAfter),
+            solution: `1) Relaxation rule: $d[v] \leftarrow \min(d[v], d[u] + w(u,v))$.
+2) Here: $d[${scenario.u}]+w=${scenario.distU}+${scenario.w}=${scenario.distVAfter}$.
+3) So the updated value is $d[${scenario.v}]=${scenario.distVAfter}$.`,
+          };
+        }
+      }
+      // Fallback (should be rare): use a simple numeric relaxation question.
+      const du = randInt(0, 20);
+      const dv = randInt(du, du + 30);
+      const w = randInt(1, 15);
+      const ans = Math.min(dv, du + w);
+      const prompt = `Dijkstra relaxation rule: if d[u]=${du}, d[v]=${dv}, and w(u,v)=${w}, what is the new d[v] after relaxing (u,v)?`;
+      return {
+        prompt,
+        answer: [String(ans)],
+        check: (user) => normalize(user) === String(ans),
+        solution: `1) Compute $d[u]+w=${du}+${w}=${du + w}$.
+2) Take $\min(d[v], d[u]+w)=\min(${dv}, ${du + w})=${ans}$.`,
+      };
+    }
+
+    if (type === "path") {
+      const { dist, parent } = dijkstraWithParent(n, edges, s);
+      // Reconstruct one shortest path using parent pointers.
+      const path = [];
+      let cur = t;
+      let guard = 0;
+      while (cur !== -1 && guard++ < 50) {
+        path.push(cur);
+        if (cur === s) break;
+        cur = parent[cur];
+      }
+      path.reverse();
+      const expected = path.map(String);
+
+      return {
+        prompt: `Shortest path (vertices): enter one shortest path from ${s} to ${t} as a vertex sequence.`,
+        ui: { type: "sequence", length: expected.length },
+        visual: {
+          graph: {
+            directed: true,
+            start: s,
+            target: t,
+            nodes: g.nodes,
+            pos: g.pos,
+            edges: edges.map(([u, v, w]) => ({ u, v, label: w })),
+          },
+        },
+        answer: expected,
+        check: (user) => Array.isArray(user) && user.join(",") === expected.join(","),
+        solution: `1) Run Dijkstra from $s=${s}$ (all weights are nonnegative).
+2) Store a parent/predecessor when a relaxation improves a distance.
+3) Reconstruct by following parents from $t$ back to $s$.
+4) One shortest path is: ${path.join(" ")}. (distance = ${dist[t]})`,
+      };
+    }
+
+    // Default: distance value drill.
     const dist = dijkstra(n, edges, s)[t];
     const prompt = `Shortest path distance from ${s} to ${t} (Dijkstra; all weights nonnegative).`;
     return {
@@ -724,7 +1627,10 @@
       },
       answer: [String(dist)],
       check: (user) => normalize(user) === String(dist),
-      solution: `1) Initialize $d[${s}]=0$ and all other $d[v]=\infty$.\n2) Repeatedly pick the unvisited vertex with smallest tentative distance.\n3) Relax all outgoing edges $(u,v)$: if $d[v] > d[u] + w(u,v)$, update it.\n4) When finished, the shortest distance to ${t} is $d[${t}]=${dist}$.`,
+      solution: `1) Initialize $d[${s}]=0$ and all other $d[v]=\infty$.
+2) Repeatedly pick the unvisited vertex with smallest tentative distance.
+3) Relax all outgoing edges $(u,v)$: if $d[v] > d[u] + w(u,v)$, update it.
+4) When finished, the shortest distance to ${t} is $d[${t}]=${dist}$.`,
     };
   }
 
@@ -732,6 +1638,86 @@
     const g = makeReadableUndirectedWeightedGraph();
     const n = g.nodes.length;
     const edges = g.edges;
+    const type = sample(["weight", "kruskal_order", "prim_order", "safeedge"]);
+
+    if (type === "safeedge") {
+      const prompt = `MST cut property: consider any cut (S, V\\S). The minimum-weight edge crossing the cut is ____ (i.e., belongs to some MST). Answer with one word.`;
+      return {
+        prompt,
+        answer: ["safe"],
+        check: (user) => normalize(user).includes("safe"),
+        solution: `1) (Cut property) Let $e$ be a light edge crossing a cut.
+2) If an MST already contains $e$, done.
+3) Otherwise, swapping $e$ into an MST replaces a heavier crossing edge without increasing total weight.
+4) Therefore $e$ is safe (in some MST).`,
+      };
+    }
+
+    if (type === "kruskal_order") {
+      const picked = kruskalMSTOrder(n, edges);
+      const expected = picked.map(([u, v]) => `${Math.min(u, v)}-${Math.max(u, v)}`);
+      const prompt = `Run Kruskal and list the edges added (in order) as "u-v" (ignore weights).`;
+      return {
+        prompt,
+        ui: { type: "sequence", length: expected.length },
+        visual: {
+          graph: {
+            directed: false,
+            nodes: g.nodes,
+            pos: g.pos,
+            edges: edges.map(([u, v, w]) => ({ u, v, label: w })),
+          },
+        },
+        answer: expected,
+        check: (user) => {
+          if (!Array.isArray(user) || user.length !== expected.length) return false;
+          for (let i = 0; i < expected.length; i++) {
+            const nums = String(user[i]).match(/\d+/g)?.map(Number) ?? [];
+            if (nums.length < 2) return false;
+            const a = Math.min(nums[0], nums[1]);
+            const b = Math.max(nums[0], nums[1]);
+            if (`${a}-${b}` !== expected[i]) return false;
+          }
+          return true;
+        },
+        solution: `1) Sort edges by weight; scan and add if it doesn't create a cycle.
+2) Edges added in order: ${expected.join(", ")}.`,
+      };
+    }
+
+    if (type === "prim_order") {
+      const start = 0;
+      const picked = primMSTOrder(n, edges, start);
+      const expected = picked.map(([u, v]) => `${Math.min(u, v)}-${Math.max(u, v)}`);
+      const prompt = `Run Prim starting from ${start}. List the edges added (in order) as "u-v" (ignore weights).`;
+      return {
+        prompt,
+        ui: { type: "sequence", length: expected.length },
+        visual: {
+          graph: {
+            directed: false,
+            nodes: g.nodes,
+            pos: g.pos,
+            edges: edges.map(([u, v, w]) => ({ u, v, label: w })),
+          },
+        },
+        answer: expected,
+        check: (user) => {
+          if (!Array.isArray(user) || user.length !== expected.length) return false;
+          for (let i = 0; i < expected.length; i++) {
+            const nums = String(user[i]).match(/\d+/g)?.map(Number) ?? [];
+            if (nums.length < 2) return false;
+            const a = Math.min(nums[0], nums[1]);
+            const b = Math.max(nums[0], nums[1]);
+            if (`${a}-${b}` !== expected[i]) return false;
+          }
+          return true;
+        },
+        solution: `1) Maintain a tree set; repeatedly add the lightest edge from the tree to a new vertex.
+2) Edges added in order: ${expected.join(", ")}.`,
+      };
+    }
+
     const mstWeight = kruskalMST(n, edges);
     const prompt = `Find the MST total weight (Kruskal).`;
     return {
@@ -751,7 +1737,7 @@
   }
 
   function genDP() {
-    const type = sample(["lcs_matrix", "knap"]);
+    const type = sample(["lcs_matrix", "lcs_string", "knap"]);
     if (type === "lcs_matrix") {
       const alphabet = ["A", "B", "C", "D"]; 
       const a = Array.from({ length: randInt(2, 3) }, () => sample(alphabet)).join("");
@@ -774,6 +1760,34 @@
         answer: dp.map((row) => row.map(String)),
         check: (user) => matrixEq(user, dp.map((row) => row.map(String))),
         solution: `1) Define $dp[i][j]$ = LCS length of $S[0..i)$ and $T[0..j)$.\n2) Base cases: $dp[0][*]=0$ and $dp[*][0]=0$.\n3) Transition: if chars match, $dp[i][j]=dp[i-1][j-1]+1$; else $dp[i][j]=\max(dp[i-1][j],dp[i][j-1])$.\n4) Fill row-by-row (or col-by-col).\n5) Final table (rows $i=0..${n}$, cols $j=0..${m}$):\n${formatMatrix(dp)}\n6) LCS length = $dp[${n}][${m}]=${dp[n][m]}$.`,
+      };
+    }
+
+    if (type === "lcs_string") {
+      const alphabet = ["A", "B", "C", "D"];
+      const a = Array.from({ length: randInt(3, 4) }, () => sample(alphabet)).join("");
+      const b = Array.from({ length: randInt(3, 4) }, () => sample(alphabet)).join("");
+      const res = lcsOneString(a, b);
+      const dp = res.dp;
+      const optimalLen = dp[a.length][b.length];
+
+      const prompt = `Give any one LCS string for S="${a}" and T="${b}" (length must be optimal).`;
+      return {
+        prompt,
+        answer: [res.str],
+        check: (user) => {
+          const s = String(user ?? "")
+            .toUpperCase()
+            .replace(/\s+/g, "");
+          if (!s) return optimalLen === 0;
+          if (s.length !== optimalLen) return false;
+          return isSubsequence(s, a) && isSubsequence(s, b);
+        },
+        solution: `1) Compute the LCS DP table (same recurrence as the matrix drill).
+2) The optimal length is $dp[|S|][|T|]=${optimalLen}$.
+3) Any common subsequence of length ${optimalLen} is a valid answer.
+4) One valid LCS is: "${res.str}".
+5) DP table (optional):\n${formatMatrix(dp)}.`,
       };
     }
 
@@ -830,11 +1844,76 @@
   }
 
   function genFlow() {
+    const type = sample(["maxflow", "mincut", "residual1"]);
     const g = makeReadableFlowNetwork();
     const n = g.nodes.length;
     const s = 0;
     const t = 5;
     const edges = g.edges;
+
+    if (type === "residual1") {
+      const step = firstEdmondsKarpAugmentation(n, edges, s, t);
+      if (step) {
+        const edgeStr = step.path.map(([u, v]) => `${u}->${v}`).join(", ");
+        const expected = step.residuals.map((r) => [String(r.fwd), String(r.back)]);
+        const prompt = `Edmonds–Karp (first augmentation): BFS finds path ${edgeStr}. After augmenting by bottleneck Δ=${step.add}, fill a table with 2 columns for each path edge: [forward residual, backward residual].`;
+        return {
+          prompt,
+          ui: { type: "matrix", rows: expected.length, cols: 2 },
+          visual: {
+            graph: {
+              directed: true,
+              start: s,
+              target: t,
+              nodes: g.nodes,
+              pos: g.pos,
+              edges: edges.map(([u, v, c]) => ({ u, v, label: c })),
+            },
+          },
+          answer: expected,
+          check: (user) => matrixEq(user, expected),
+          solution: `1) Augment by $\Delta = ${step.add}$ along the first BFS path.
+2) For each path edge $(u,v)$: residual forward decreases by $\Delta$, residual backward increases by $\Delta$.
+3) Residuals [fwd,back] for the path edges in order: ${formatMatrix(expected)}.`,
+        };
+      }
+    }
+
+    if (type === "mincut") {
+      const res = edmondsKarpWithMinCut(n, edges, s, t);
+      const cutS = res.cutS.slice().sort((x, y) => x - y);
+      const expected = cutS.join(",");
+      const prompt = `Min-cut (s=${s}, t=${t}): after max flow, let S be the vertices reachable from s in the final residual graph. Enter S as comma-separated ids (example: "0,1,2").`;
+
+      return {
+        prompt,
+        visual: {
+          graph: {
+            directed: true,
+            start: s,
+            target: t,
+            nodes: g.nodes,
+            pos: g.pos,
+            edges: edges.map(([u, v, c]) => ({ u, v, label: c })),
+          },
+        },
+        answer: [expected],
+        check: (user) => {
+          const nums = String(user)
+            .match(/\d+/g)
+            ?.map((x) => Number(x))
+            .filter((x) => Number.isFinite(x)) ?? [];
+          const set = Array.from(new Set(nums)).sort((a, b) => a - b);
+          return set.join(",") === expected;
+        },
+        solution: `1) Run Edmonds–Karp to compute a max flow.
+2) In the final residual graph, do a BFS/DFS from $s$ following only edges with positive residual capacity.
+3) The reachable vertices form $S$; the rest form $T$.
+4) This $(S,T)$ is an $s$–$t$ minimum cut.
+5) Here, $S = {${cutS.join(", ")}}$.`,
+      };
+    }
+
     const ans = edmondsKarp(n, edges, s, t);
     const prompt = `Max flow value from s=${s} to t=${t}.`;
     return {
@@ -851,13 +1930,18 @@
       },
       answer: [String(ans)],
       check: (user) => normalize(user) === String(ans),
-      solution: `1) Build the residual graph with remaining capacities and back edges.\n2) Find an augmenting path from $s$ to $t$ (Edmonds\u2013Karp uses BFS).\n3) Augment by the bottleneck residual capacity on that path; update residual capacities.\n4) Repeat until no augmenting path exists.\n5) The resulting max flow value is ${ans}.`,
+      solution: `1) Build the residual graph with remaining capacities and back edges.
+2) Find an augmenting path from $s$ to $t$ (Edmonds–Karp uses BFS).
+3) Augment by the bottleneck residual capacity on that path; update residual capacities.
+4) Repeat until no augmenting path exists.
+5) The resulting max flow value is ${ans}.`,
     };
   }
 
   const GENERATORS = {
     asymptotic: genAsymptotic,
     recurrences: genRecurrences,
+    induction: genInduction,
     insertion: genInsertion,
     mergesort: genMergesort,
     quicksort: genQuicksort,
@@ -870,6 +1954,7 @@
     shortestpaths: genShortestPaths,
     mst: genMST,
     dp: genDP,
+    matrixchain: genMatrixChain,
     greedy: genGreedy,
     flow: genFlow,
   };

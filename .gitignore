@@ -1,0 +1,5 @@
+# Ignore the full alg directory (visualization library)
+alg/
+
+# Node modules if you add any
+node_modules/
